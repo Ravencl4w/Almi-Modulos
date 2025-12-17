@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Menú principal de Farmacia -->
+    <menuitem id="menu_pharma_root"
+              name="Farmacia"
+              parent="stock.menu_stock_root"
+              sequence="50"/>
+    
+    <!-- Submenú Catálogos -->
+    <menuitem id="menu_pharma_catalogs"
+              name="Catálogos"
+              parent="menu_pharma_root"
+              sequence="10"/>
+    
+    <!-- Menú Marcas -->
+    <menuitem id="menu_product_brand"
+              name="Marcas"
+              parent="menu_pharma_catalogs"
+              action="action_product_brand"
+              sequence="10"/>
+    
+    <!-- Menú Laboratorios -->
+    <menuitem id="menu_product_laboratory"
+              name="Laboratorios"
+              parent="menu_pharma_catalogs"
+              action="action_product_laboratory"
+              sequence="20"/>
+    
+    <!-- Menú Líneas de Laboratorio -->
+    <menuitem id="menu_product_laboratory_line"
+              name="Líneas de Laboratorio"
+              parent="menu_pharma_catalogs"
+              action="action_product_laboratory_line"
+              sequence="30"/>
+
+</odoo>
+

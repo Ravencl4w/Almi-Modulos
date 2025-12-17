@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form View Extension for GRE -->
+    <record id="view_stock_picking_form_gre" model="ir.ui.view">
+        <field name="name">stock.picking.form.gre</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <!-- Agregar botones en el header -->
+            <xpath expr="//header" position="inside">
+                <field name="is_electronic_guide" invisible="1"/>
+                <field name="gre_state" invisible="1"/>
+                
+                <button name="action_mark_as_electronic_guide" type="object"
+                        string="Marcar como Guía Electrónica"
+                        invisible="is_electronic_guide or state != 'done'"
+                        class="oe_highlight"/>
+                
+                <button name="action_prepare_gre" type="object"
+                        string="Preparar GRE"
+                        invisible="not is_electronic_guide or gre_state != 'draft'"
+                        class="oe_highlight"/>
+                
+                <button name="action_send_gre_to_sunat" type="object"
+                        string="Enviar a SUNAT"
+                        invisible="not is_electronic_guide or gre_state not in ['ready', 'rejected']"
+                        class="oe_highlight"
+                        confirm="¿Está seguro de enviar esta guía a SUNAT?"/>
+                
+                <button name="action_query_gre_status" type="object"
+                        string="Consultar Estado"
+                        invisible="not is_electronic_guide or gre_state not in ['sent', 'accepted']"/>
+                
+                <button name="action_download_pdf" type="object"
+                        string="Descargar PDF"
+                        invisible="not is_electronic_guide or gre_state != 'accepted'"
+                        icon="fa-file-pdf-o"/>
+                
+                <button name="action_download_xml" type="object"
+                        string="Descargar XML"
+                        invisible="not is_electronic_guide or gre_state != 'accepted'"
+                        icon="fa-file-code-o"/>
+                
+                <button name="action_cancel_gre" type="object"
+                        string="Cancelar GRE"
+                        invisible="not is_electronic_guide or gre_state in ['cancelled', 'accepted']"
+                        confirm="¿Está seguro de cancelar esta guía electrónica?"/>
+                
+                <field name="gre_state" widget="statusbar"
+                       statusbar_visible="draft,ready,sent,accepted"
+                       invisible="not is_electronic_guide"/>
+            </xpath>
+            
+            <!-- Agregar pestaña de Guía de Remisión Electrónica -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Guía de Remisión Electrónica" name="gre"
+                      invisible="not is_electronic_guide">
+                    <group>
+                        <group string="Datos de la Guía">
+                            <field name="gre_serie"/>
+                            <field name="gre_number"/>
+                            <field name="transfer_reason" required="is_electronic_guide"/>
+                            <field name="transfer_reason_description"/>
+                            <field name="transport_mode" required="is_electronic_guide"/>
+                        </group>
+                        <group string="Estado SUNAT">
+                            <field name="gre_sent_date" readonly="1"/>
+                            <field name="gre_ticket_number" readonly="1"/>
+                            <field name="gre_hash_code" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Punto de Partida">
+                            <field name="origin_address" required="is_electronic_guide"/>
+                            <field name="origin_ubigeo" 
+                                   placeholder="150101"
+                                   help="Código de ubigeo de 6 dígitos"/>
+                        </group>
+                        <group string="Punto de Llegada">
+                            <field name="destination_address" required="is_electronic_guide"/>
+                            <field name="destination_ubigeo" 
+                                   placeholder="150101"
+                                   help="Código de ubigeo de 6 dígitos"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Transporte">
+                            <field name="driver_id" 
+                                   required="is_electronic_guide"
+                                   options="{'no_create': True}"/>
+                            <field name="driver_license" readonly="1"/>
+                            <field name="vehicle_id" 
+                                   required="is_electronic_guide"
+                                   options="{'no_create': True}"/>
+                            <field name="vehicle_plate" readonly="1"/>
+                        </group>
+                        <group string="Peso y Bultos">
+                            <label for="total_weight"/>
+                            <div class="o_row">
+                                <field name="total_weight"/>
+                                <button name="action_recalculate_weight" type="object"
+                                        string="Recalcular"
+                                        icon="fa-calculator"
+                                        class="btn-link"
+                                        help="Recalcula el peso automáticamente desde los productos"/>
+                            </div>
+                            <field name="total_packages"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Enlaces de Documentos" 
+                           invisible="gre_state != 'accepted'">
+                        <field name="gre_pdf_url" widget="url" readonly="1"/>
+                        <field name="gre_xml_url" widget="url" readonly="1"/>
+                        <field name="gre_cdr_url" widget="url" readonly="1"/>
+                    </group>
+                    
+                    <group string="Respuesta de SUNAT" 
+                           invisible="not gre_response">
+                        <field name="gre_response" readonly="1" nolabel="1"/>
+                    </group>
+                    
+                    <group string="Mensaje de Error" 
+                           invisible="not gre_error_message">
+                        <field name="gre_error_message" readonly="1" nolabel="1"
+                               class="text-danger"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- List View Extension -->
+    <record id="view_stock_picking_list_gre" model="ir.ui.view">
+        <field name="name">stock.picking.list.gre</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-success">is_electronic_guide and gre_state == 'accepted'</attribute>
+                <attribute name="decoration-warning">is_electronic_guide and gre_state in ['ready', 'sent']</attribute>
+                <attribute name="decoration-danger">is_electronic_guide and gre_state == 'rejected'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="is_electronic_guide" optional="show"/>
+                <field name="gre_state" optional="show" 
+                       invisible="not is_electronic_guide"
+                       widget="badge"
+                       decoration-success="gre_state == 'accepted'"
+                       decoration-warning="gre_state in ['ready', 'sent']"
+                       decoration-danger="gre_state == 'rejected'"/>
+                <field name="transfer_reason" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Search View Extension -->
+    <record id="view_stock_picking_search_gre" model="ir.ui.view">
+        <field name="name">stock.picking.search.gre</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_internal_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter string="Guías Electrónicas" name="electronic_guides"
+                        domain="[('is_electronic_guide', '=', True)]"/>
+                <filter string="GRE Listas para Enviar" name="gre_ready"
+                        domain="[('is_electronic_guide', '=', True), ('gre_state', '=', 'ready')]"/>
+                <filter string="GRE Aceptadas" name="gre_accepted"
+                        domain="[('is_electronic_guide', '=', True), ('gre_state', '=', 'accepted')]"/>
+                <filter string="GRE Rechazadas" name="gre_rejected"
+                        domain="[('is_electronic_guide', '=', True), ('gre_state', '=', 'rejected')]"/>
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Estado GRE" name="group_gre_state"
+                            context="{'group_by': 'gre_state'}"/>
+                    <filter string="Motivo de Traslado" name="group_transfer_reason"
+                            context="{'group_by': 'transfer_reason'}"/>
+                    <filter string="Conductor" name="group_driver"
+                            context="{'group_by': 'driver_id'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Action para Guías Electrónicas -->
+    <record id="action_stock_picking_gre" model="ir.actions.act_window">
+        <field name="name">Guías de Remisión Electrónica</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_electronic_guide', '=', True)]</field>
+        <field name="context">{
+            'search_default_gre_ready': 1,
+            'default_is_electronic_guide': True
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay guías de remisión electrónicas
+            </p>
+            <p>
+                Las guías de remisión electrónicas se generan automáticamente
+                desde las operaciones de stock validadas.
+            </p>
+        </field>
+    </record>
+</odoo>
+

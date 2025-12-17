@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vista de formulario para Zonas de Venta -->
+    <record id="view_sale_zone_form" model="ir.ui.view">
+        <field name="name">sale.zone.form</field>
+        <field name="model">sale.zone</field>
+        <field name="arch" type="xml">
+            <form string="Zona de Venta">
+                <sheet>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" 
+                            invisible="active"/>
+                    
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Nombre de la zona"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Información General">
+                            <field name="code"/>
+                            <field name="user_id"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        
+                        <group string="Estadísticas">
+                            <field name="partner_count"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Descripción">
+                        <field name="description" nolabel="1" placeholder="Descripción de la zona, límites geográficos, características especiales..."/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Clientes" name="customers">
+                            <field name="partner_ids" mode="list">
+                                <list string="Clientes">
+                                    <field name="name"/>
+                                    <field name="phone"/>
+                                    <field name="email"/>
+                                    <field name="business_sector"/>
+                                    <field name="city"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Vista de lista para Zonas de Venta -->
+    <record id="view_sale_zone_list" model="ir.ui.view">
+        <field name="name">sale.zone.list</field>
+        <field name="model">sale.zone</field>
+        <field name="arch" type="xml">
+            <list string="Zonas de Venta">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="partner_count"/>
+                <field name="active"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Vista Kanban para Zonas de Venta -->
+    <record id="view_sale_zone_kanban" model="ir.ui.view">
+        <field name="name">sale.zone.kanban</field>
+        <field name="model">sale.zone</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="user_id"/>
+                <field name="partner_count"/>
+                <field name="color"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_content">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="complete_name"/>
+                                    </strong>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <field name="user_id" widget="many2one_avatar_user"/>
+                                <div>
+                                    <i class="fa fa-users"/> <field name="partner_count"/> clientes
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    
+    <!-- Vista de búsqueda para Zonas de Venta -->
+    <record id="view_sale_zone_search" model="ir.ui.view">
+        <field name="name">sale.zone.search</field>
+        <field name="model">sale.zone</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Zonas de Venta">
+                <field name="name" string="Zona"
+                       filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
+                <field name="user_id"/>
+                <field name="code"/>
+                
+                <filter string="Activas" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactivas" name="inactive" domain="[('active', '=', False)]"/>
+                
+                <separator/>
+                <filter string="Con Clientes" name="with_customers" 
+                        domain="[('partner_count', '>', 0)]"/>
+                <filter string="Sin Clientes" name="without_customers" 
+                        domain="[('partner_count', '=', 0)]"/>
+                
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Ejecutivo" name="group_user" 
+                            context="{'group_by': 'user_id'}"/>
+                    <filter string="Compañía" name="group_company" 
+                            context="{'group_by': 'company_id'}" 
+                            groups="base.group_multi_company"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Acción para abrir Zonas de Venta -->
+    <record id="action_sale_zone" model="ir.actions.act_window">
+        <field name="name">Zonas de Venta</field>
+        <field name="res_model">sale.zone</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crea tu primera zona de venta
+            </p>
+            <p>
+                Las zonas de venta te permiten organizar geográficamente a tus clientes
+                y asignar ejecutivos responsables de cada zona.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Menú en Contactos / Configuración -->
+    <menuitem id="menu_sale_zone_root"
+              name="Zonas de Venta"
+              parent="contacts.res_partner_menu_config"
+              action="action_sale_zone"
+              sequence="20"/>
+
+</odoo>
+

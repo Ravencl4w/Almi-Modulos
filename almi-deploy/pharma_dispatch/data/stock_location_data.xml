@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+            Ubicación para Recojo en Local
+            
+            Esta ubicación se crea automáticamente al instalar el módulo.
+            Es de tipo "Ubicación Interna" y se usa para apartar productos
+            que los clientes recogerán en el local.
+            
+            Características:
+            - Tipo: Internal (ubicación interna)
+            - Nombre: Para Recoger
+            - Se asigna automáticamente a pedidos con delivery_type = 'pickup'
+            - El stock se aparta aquí hasta que el cliente recoge
+        -->
+        
+        <!-- Obtener el almacén principal (WH/Stock) -->
+        <record id="stock_location_pickup" model="stock.location">
+            <field name="name">Para Recoger</field>
+            <field name="usage">internal</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="active">True</field>
+            <field name="comment">Ubicación para apartar productos que serán recogidos por el cliente en el local. 
+            
+Esta ubicación se usa automáticamente cuando un pedido se marca como "Recojo en Local". El stock se transfiere aquí desde las ubicaciones de inventario y permanece apartado hasta que el cliente recoja el pedido.
+
+Flujo de uso:
+1. Cliente hace pedido con "Recojo en Local"
+2. Sistema aparta stock en esta ubicación
+3. Personal marca pedido como "Listo para Recoger"
+4. Cliente es notificado
+5. Cliente recoge y se valida la entrega</field>
+        </record>
+        
+        <!-- 
+            Nota: Si tu empresa tiene múltiples almacenes, es posible que necesites
+            crear una ubicación "Para Recoger" en cada almacén.
+            
+            Para hacerlo, puedes duplicar el record anterior y cambiar el location_id
+            para que apunte al almacén correspondiente.
+        -->
+    </data>
+</odoo>
+

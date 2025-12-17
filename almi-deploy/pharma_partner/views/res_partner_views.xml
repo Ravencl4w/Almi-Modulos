@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vista de formulario extendida para res.partner -->
+    <record id="view_partner_form_pharma" model="ir.ui.view">
+        <field name="name">res.partner.form.pharma</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Agregar alertas en la parte superior -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-danger" role="alert" 
+                     invisible="drugstore_resolution_status != 'vencida'">
+                    <strong>⚠️ RESOLUCIÓN DE DROGUERÍA VENCIDA</strong>
+                    <p>La resolución de droguería de este cliente ha expirado. 
+                       Solicite la renovación antes de realizar ventas de productos controlados.</p>
+                </div>
+                
+                <div class="alert alert-warning" role="alert" 
+                     invisible="drugstore_resolution_status != 'por_vencer'">
+                    <strong>⚠️ RESOLUCIÓN POR VENCER</strong>
+                    <p>La resolución de droguería vence pronto. Contacte al cliente para renovación.</p>
+                </div>
+                
+                <div class="alert alert-danger" role="alert" 
+                     invisible="credit_used_percent &lt; 100">
+                    <strong>⚠️ CRÉDITO AGOTADO</strong>
+                    <p>Este cliente ha excedido su límite de crédito. Gestione los pagos pendientes.</p>
+                </div>
+                
+                <div class="alert alert-warning" role="alert" 
+                     invisible="credit_used_percent &lt; 90 or credit_used_percent >= 100">
+                    <strong>⚠️ CRÉDITO CRÍTICO</strong>
+                    <p>Este cliente ha utilizado el <field name="credit_used_percent" readonly="1"/>% de su crédito.</p>
+                </div>
+            </xpath>
+            
+            <!-- Agregar pestaña de Información Comercial -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Información Comercial" name="commercial_info">
+                    <group>
+                        <group string="Clasificación del Negocio">
+                            <field name="business_sector"/>
+                            <field name="business_sector_other" 
+                                   invisible="business_sector != 'otro'"
+                                   required="business_sector == 'otro'"/>
+                        </group>
+                        
+                        <group string="Organización de Ventas">
+                            <field name="sale_zone_id" 
+                                   options="{'no_create': False, 'no_create_edit': False}"/>
+                            <field name="sale_zone_code"/>
+                            <field name="sale_zone_user_id"/>
+                        </group>
+                    </group>
+                    
+                    <separator string="Gestión de Crédito"/>
+                    <group>
+                        <group string="Límites de Crédito">
+                            <field name="credit_limit_custom" 
+                                   widget="monetary"/>
+                            <field name="credit" string="Crédito Usado" readonly="1" 
+                                   widget="monetary"/>
+                            <field name="credit_available" 
+                                   widget="monetary"
+                                   decoration-danger="credit_available &lt; 0"
+                                   decoration-warning="credit_available &lt; credit_limit_custom * 0.1"/>
+                            <field name="credit_used_percent" widget="progressbar"/>
+                            <field name="has_credit" invisible="1"/>
+                        </group>
+                        
+                        <group string="Aprobación">
+                            <field name="credit_approved_by"/>
+                            <field name="credit_approved_date"/>
+                            <button name="action_approve_credit" 
+                                    type="object" 
+                                    string="Aprobar Crédito"
+                                    class="btn-primary"
+                                    invisible="not credit_limit_custom or credit_limit_custom &lt;= 0"/>
+                            <button name="action_view_invoices_with_credit" 
+                                    type="object" 
+                                    string="Ver Facturas Pendientes"
+                                    class="btn-secondary"
+                                    invisible="not has_credit"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <field name="credit_notes" 
+                               placeholder="Observaciones sobre el crédito del cliente..."/>
+                    </group>
+                </page>
+                
+                <!-- Pestaña de Droguería -->
+                <page string="Resolución de Droguería" 
+                      name="drugstore_resolution"
+                      invisible="business_sector not in ['farmacia', 'botica', 'drogueria', 'cadena_farmacias']">
+                    <group>
+                        <group string="Estado de Resolución">
+                            <field name="has_drugstore_resolution" widget="boolean_toggle"/>
+                            <field name="drugstore_resolution_status" 
+                                   widget="badge"
+                                   decoration-success="drugstore_resolution_status == 'vigente'"
+                                   decoration-warning="drugstore_resolution_status == 'por_vencer'"
+                                   decoration-danger="drugstore_resolution_status == 'vencida'"
+                                   decoration-muted="drugstore_resolution_status == 'no_aplica'"/>
+                            <button name="action_renew_drugstore_resolution" 
+                                    type="object" 
+                                    string="Renovar Resolución"
+                                    class="btn-warning"
+                                    invisible="drugstore_resolution_status not in ['por_vencer', 'vencida']"/>
+                        </group>
+                        
+                        <group string="Autoridad Emisora">
+                            <field name="drugstore_authority" 
+                                   placeholder="ej: DIGEMID, MINSA"
+                                   invisible="not has_drugstore_resolution"/>
+                        </group>
+                    </group>
+                    
+                    <group invisible="not has_drugstore_resolution">
+                        <group string="Datos de la Resolución">
+                            <field name="drugstore_resolution_number"/>
+                            <field name="drugstore_resolution_date"/>
+                            <field name="drugstore_resolution_expiry"/>
+                        </group>
+                        
+                        <group string="Archivo">
+                            <field name="drugstore_resolution_filename" invisible="1"/>
+                            <field name="drugstore_resolution_file" 
+                                   filename="drugstore_resolution_filename"
+                                   widget="binary"/>
+                        </group>
+                    </group>
+                    
+                    <group invisible="not has_drugstore_resolution">
+                        <field name="drugstore_notes" 
+                               placeholder="Observaciones sobre la resolución y permisos..."/>
+                    </group>
+                </page>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Vista de búsqueda extendida para res.partner -->
+    <record id="view_partner_search_pharma" model="ir.ui.view">
+        <field name="name">res.partner.search.pharma</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="business_sector"/>
+                <field name="sale_zone_id"/>
+            </xpath>
+            
+            <xpath expr="//filter[@name='type_company']" position="after">
+                <separator/>
+                <filter string="Farmacias" name="farmacia" 
+                        domain="[('business_sector', '=', 'farmacia')]"/>
+                <filter string="Boticas" name="botica" 
+                        domain="[('business_sector', '=', 'botica')]"/>
+                <filter string="Droguerías" name="drogueria" 
+                        domain="[('business_sector', '=', 'drogueria')]"/>
+                <filter string="Clínicas/Hospitales" name="clinica_hospital" 
+                        domain="[('business_sector', 'in', ['clinica', 'hospital'])]"/>
+                <separator/>
+                <filter string="Con Crédito" name="with_credit" 
+                        domain="[('credit_limit_custom', '>', 0)]"/>
+                <filter string="Crédito Agotado" name="credit_exceeded" 
+                        domain="[('credit_used_percent', '>=', 100)]"/>
+                <filter string="Crédito Crítico (&gt;90%)" name="credit_critical" 
+                        domain="[('credit_used_percent', '>=', 90), ('credit_used_percent', '&lt;', 100)]"/>
+                <separator/>
+                <filter string="Con Resolución Vigente" name="resolution_valid" 
+                        domain="[('drugstore_resolution_status', '=', 'vigente')]"/>
+                <filter string="Resolución Vencida" name="resolution_expired" 
+                        domain="[('drugstore_resolution_status', '=', 'vencida')]"/>
+                <filter string="Resolución por Vencer" name="resolution_expiring" 
+                        domain="[('drugstore_resolution_status', '=', 'por_vencer')]"/>
+            </xpath>
+            
+            <xpath expr="//group[@name='group_by']" position="inside">
+                <filter string="Giro del Negocio" name="group_business_sector" 
+                        context="{'group_by': 'business_sector'}"/>
+                <filter string="Zona de Venta" name="group_sale_zone" 
+                        context="{'group_by': 'sale_zone_id'}"/>
+                <filter string="Estado de Resolución" name="group_resolution_status" 
+                        context="{'group_by': 'drugstore_resolution_status'}"/>
+            </xpath>
+            
+        </field>
+    </record>
+
+</odoo>
+

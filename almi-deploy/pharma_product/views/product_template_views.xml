@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vista de formulario extendida para Productos -->
+    <record id="view_product_template_form_pharma" model="ir.ui.view">
+        <field name="name">product.template.form.pharma</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            
+            <!-- Agregar alertas sobre registro sanitario -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-danger" role="alert" 
+                     invisible="sanitary_registration_status != 'vencido'">
+                    <strong>⚠️ REGISTRO SANITARIO VENCIDO</strong>
+                    <p>El registro sanitario de este producto ha expirado. No se puede comercializar hasta renovarlo.</p>
+                </div>
+                
+                <div class="alert alert-warning" role="alert" 
+                     invisible="sanitary_registration_status != 'por_vencer'">
+                    <strong>⚠️ REGISTRO POR VENCER</strong>
+                    <p>El registro sanitario vence pronto. Iniciar proceso de renovación.</p>
+                </div>
+                
+                <div class="alert alert-warning" role="alert" 
+                     invisible="not requires_sanitary_registration or sanitary_registration">
+                    <strong>⚠️ SIN REGISTRO SANITARIO</strong>
+                    <p>Este producto requiere registro sanitario pero no tiene uno asignado.</p>
+                </div>
+            </xpath>
+            
+            <!-- Agregar botones en el header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_view_related_products" type="object" 
+                        string="Productos Relacionados" 
+                        class="btn-secondary"
+                        invisible="related_products_count == 0"/>
+                <button name="action_view_same_laboratory" type="object" 
+                        string="Del Mismo Laboratorio" 
+                        class="btn-secondary"
+                        invisible="not laboratory_id"/>
+            </xpath>
+            
+            <!-- Agregar campos farmacéuticos en General Information -->
+            <xpath expr="//group[@name='group_general']" position="inside">
+                <field name="brand_id" options="{'no_create_edit': False}"/>
+                <field name="laboratory_id" options="{'no_create_edit': False}"/>
+                <field name="laboratory_line_id" 
+                       options="{'no_create_edit': False}"
+                       invisible="not laboratory_id"/>
+            </xpath>
+            
+            <!-- Agregar pestaña Información Farmacéutica -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Información Farmacéutica" name="pharmaceutical_info">
+                    <group>
+                        <group string="Clasificación">
+                            <field name="active_ingredient"/>
+                            <field name="concentration"/>
+                            <field name="pharmaceutical_form"/>
+                            <field name="therapeutic_group"/>
+                        </group>
+                        
+                        <group string="Características Especiales">
+                            <field name="requires_prescription" widget="boolean_toggle"/>
+                            <field name="controlled_substance" widget="boolean_toggle"/>
+                            <field name="cold_chain" widget="boolean_toggle"/>
+                            <field name="storage_temperature" invisible="not cold_chain"/>
+                        </group>
+                    </group>
+                    
+                    <separator string="Registro Sanitario"/>
+                    <group>
+                        <group string="Datos del Registro">
+                            <field name="requires_sanitary_registration" widget="boolean_toggle"/>
+                            <field name="sanitary_registration" 
+                                   invisible="not requires_sanitary_registration"/>
+                            <field name="sanitary_authority" 
+                                   invisible="not requires_sanitary_registration"/>
+                            <field name="sanitary_registration_date" 
+                                   invisible="not requires_sanitary_registration"/>
+                            <field name="sanitary_registration_expiry" 
+                                   invisible="not requires_sanitary_registration"/>
+                            <field name="sanitary_registration_status" 
+                                   widget="badge"
+                                   decoration-success="sanitary_registration_status == 'vigente'"
+                                   decoration-warning="sanitary_registration_status == 'por_vencer'"
+                                   decoration-danger="sanitary_registration_status == 'vencido'"
+                                   decoration-muted="sanitary_registration_status == 'no_aplica'"
+                                   invisible="not requires_sanitary_registration"/>
+                        </group>
+                        
+                        <group string="Documentación" invisible="not requires_sanitary_registration">
+                            <field name="sanitary_registration_filename" invisible="1"/>
+                            <field name="sanitary_registration_file" 
+                                   filename="sanitary_registration_filename"
+                                   widget="binary"/>
+                        </group>
+                    </group>
+                    
+                    <group invisible="not requires_sanitary_registration">
+                        <field name="sanitary_notes" 
+                               nolabel="1"
+                               placeholder="Notas sobre el registro sanitario..."/>
+                    </group>
+                </page>
+                
+                <!-- Mejorar visualización de productos relacionados -->
+                <page string="Productos Relacionados" name="related_products">
+                    <group>
+                        <group string="Estadísticas">
+                            <field name="has_related_products" widget="boolean"/>
+                            <field name="related_products_count"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Productos Alternativos">
+                        <field name="alternative_product_ids" nolabel="1">
+                            <list>
+                                <field name="default_code"/>
+                                <field name="name"/>
+                                <field name="brand_id"/>
+                                <field name="list_price"/>
+                            </list>
+                        </field>
+                    </group>
+                    
+                    <group string="Productos Opcionales / Complementarios">
+                        <field name="optional_product_ids" nolabel="1">
+                            <list>
+                                <field name="default_code"/>
+                                <field name="name"/>
+                                <field name="brand_id"/>
+                                <field name="list_price"/>
+                            </list>
+                        </field>
+                    </group>
+                    
+                    <group string="Accesorios">
+                        <field name="accessory_product_ids" nolabel="1">
+                            <list>
+                                <field name="default_code"/>
+                                <field name="name"/>
+                                <field name="brand_id"/>
+                                <field name="list_price"/>
+                            </list>
+                        </field>
+                    </group>
+                </page>
+                
+                <!-- Mejorar pestaña de proveedores -->
+                <page string="Proveedores" name="pharma_suppliers" 
+                      invisible="type not in ['product', 'consu']">
+                    <group>
+                        <group string="Proveedor Principal">
+                            <field name="main_supplier_id" readonly="1"/>
+                            <field name="main_supplier_price" readonly="1" widget="monetary"/>
+                            <button name="action_set_main_supplier" type="object" 
+                                    string="Cambiar Proveedor Principal" 
+                                    class="btn-secondary"
+                                    invisible="not seller_ids"/>
+                        </group>
+                    </group>
+                    
+                    <separator string="Lista de Proveedores"/>
+                    <field name="seller_ids">
+                        <list editable="bottom">
+                            <field name="partner_id" domain="[('supplier_rank', '>', 0)]"/>
+                            <field name="product_name"/>
+                            <field name="product_code"/>
+                            <field name="delay"/>
+                            <field name="min_qty"/>
+                            <field name="price"/>
+                            <field name="currency_id" column_invisible="True"/>
+                            <field name="company_id" column_invisible="True"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+            
+        </field>
+    </record>
+
+</odoo>
+

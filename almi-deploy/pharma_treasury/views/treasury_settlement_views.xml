@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista List de Liquidación -->
+    <record id="view_treasury_settlement_list" model="ir.ui.view">
+        <field name="name">treasury.settlement.list</field>
+        <field name="model">treasury.settlement</field>
+        <field name="arch" type="xml">
+            <list string="Liquidaciones" create="0" edit="0" delete="0">
+                <field name="name" string="Número"/>
+                <field name="date"/>
+                <field name="sheet_id"/>
+                <field name="driver_id"/>
+                <field name="total_to_collect" sum="A Cobrar"/>
+                <field name="total_collected" sum="Cobrado"/>
+                <field name="difference" sum="Diferencia"/>
+                <field name="collection_rate" string="% Cobranza" widget="progressbar"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'submitted'"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'rejected'"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista Form de Liquidación -->
+    <record id="view_treasury_settlement_form" model="ir.ui.view">
+        <field name="name">treasury.settlement.form</field>
+        <field name="model">treasury.settlement</field>
+        <field name="arch" type="xml">
+            <form string="Liquidación">
+                <header>
+                    <!-- Botones para Transportista -->
+                    <button name="action_submit_for_review" string="Enviar para Revisión" 
+                            type="object" class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    <button name="action_reset_to_draft" string="Reiniciar" 
+                            type="object" 
+                            invisible="state not in ['submitted', 'rejected']"/>
+                    
+                    <!-- Botones para Liquidador -->
+                    <button name="action_approve" string="Aprobar" 
+                            type="object" class="oe_highlight" 
+                            invisible="state != 'submitted'"
+                            groups="account.group_account_manager"/>
+                    <button name="action_open_rejection_wizard" string="Rechazar" 
+                            type="object" 
+                            invisible="state != 'submitted'"
+                            groups="account.group_account_manager"/>
+                    
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,submitted,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sheet" type="object" 
+                                class="oe_stat_button" icon="fa-file-text">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Ver</span>
+                                <span class="o_stat_text">Planilla</span>
+                            </div>
+                        </button>
+                        <button name="action_view_route" type="object" 
+                                class="oe_stat_button" icon="fa-truck"
+                                invisible="not route_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Ver</span>
+                                <span class="o_stat_text">Ruta</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="sheet_id" readonly="1"/>
+                            <field name="route_id" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="driver_id" readonly="1"/>
+                            <field name="vehicle_id" readonly="1"/>
+                            <field name="driver_user_id" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Resumen de Cobranza" class="mt-3">
+                        <group>
+                            <field name="total_to_collect" widget="monetary"/>
+                            <field name="total_collected" widget="monetary"/>
+                            <field name="difference" widget="monetary"/>
+                        </group>
+                        <group>
+                            <field name="collection_rate" widget="percentage"/>
+                            <field name="delivery_rate" widget="percentage"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Estadísticas de Entrega">
+                        <group>
+                            <field name="total_deliveries" readonly="1"/>
+                            <field name="delivered_count" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="not_delivered_count" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Detalle de Cobros" name="lines">
+                            <field name="line_ids" readonly="state in ['submitted', 'approved']">
+                                <list editable="bottom">
+                                    <field name="invoice_id" readonly="1"/>
+                                    <field name="partner_id" readonly="1"/>
+                                    <field name="amount_invoice" readonly="1"/>
+                                    <field name="delivery_status"/>
+                                    <field name="amount_collected"/>
+                                    <field name="payment_method"/>
+                                    <field name="payment_reference"/>
+                                    <field name="amount_difference" readonly="1"/>
+                                    <button name="action_view_invoice" type="object" 
+                                            icon="fa-external-link" title="Ver Factura"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_to_collect" widget="monetary"/>
+                                <field name="total_collected" widget="monetary"/>
+                                <field name="difference" widget="monetary" 
+                                       class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Observaciones" name="notes">
+                            <group>
+                                <field name="driver_notes" string="Notas del Transportista" 
+                                       placeholder="Comentarios sobre la jornada de trabajo..."
+                                       readonly="state in ['approved', 'rejected']"/>
+                                <field name="notes" string="Observaciones del Liquidador" 
+                                       placeholder="Observaciones adicionales..."
+                                       readonly="state != 'submitted'"
+                                       groups="account.group_account_manager"/>
+                                <field name="rejection_reason" string="Motivo de Rechazo" 
+                                       invisible="state != 'rejected'"
+                                       readonly="1"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Fechas y Usuarios" name="tracking">
+                            <group>
+                                <group>
+                                    <field name="submission_date" readonly="1"/>
+                                    <field name="approval_date" readonly="1"/>
+                                </group>
+                                <group>
+                                    <field name="driver_user_id" readonly="1"/>
+                                    <field name="liquidator_user_id" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista Kanban de Liquidación -->
+    <record id="view_treasury_settlement_kanban" model="ir.ui.view">
+        <field name="name">treasury.settlement.kanban</field>
+        <field name="model">treasury.settlement</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" default_group_by="state">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="driver_id"/>
+                <field name="total_to_collect"/>
+                <field name="total_collected"/>
+                <field name="difference"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="row">
+                            <div class="col-8">
+                                <strong><field name="name"/></strong>
+                            </div>
+                            <div class="col-4 text-end">
+                                <field name="state" widget="badge"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <span><i class="fa fa-calendar"/> <field name="date"/></span>
+                            </div>
+                        </div>
+                        <div class="row" t-if="record.driver_id.value">
+                            <div class="col-12">
+                                <span><i class="fa fa-user"/> <field name="driver_id"/></span>
+                            </div>
+                        </div>
+                        <hr class="mt-2 mb-2"/>
+                        <div class="row">
+                            <div class="col-12">
+                                <span class="text-muted">A Cobrar: </span>
+                                <strong><field name="total_to_collect" widget="monetary"/></strong>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <span class="text-muted">Cobrado: </span>
+                                <strong><field name="total_collected" widget="monetary"/></strong>
+                            </div>
+                        </div>
+                        <div class="row" t-if="record.difference.raw_value != 0">
+                            <div class="col-12">
+                                <span class="text-muted">Diferencia: </span>
+                                <strong t-att-class="record.difference.raw_value &lt; 0 ? 'text-danger' : 'text-success'">
+                                    <field name="difference" widget="monetary"/>
+                                </strong>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vista Search de Liquidación -->
+    <record id="view_treasury_settlement_search" model="ir.ui.view">
+        <field name="name">treasury.settlement.search</field>
+        <field name="model">treasury.settlement</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Liquidaciones">
+                <field name="name" string="Liquidación"/>
+                <field name="sheet_id" string="Planilla"/>
+                <field name="driver_id" string="Conductor"/>
+                <field name="route_id" string="Ruta"/>
+                <separator/>
+                <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="En Revisión" name="submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter string="Aprobadas" name="approved" domain="[('state', '=', 'approved')]"/>
+                <filter string="Rechazadas" name="rejected" domain="[('state', '=', 'rejected')]"/>
+                <separator/>
+                <filter string="Con Diferencias" name="with_difference" 
+                        domain="['|', ('difference', '&gt;', 0), ('difference', '&lt;', 0)]"/>
+                <separator/>
+                <filter string="Fecha" name="date" date="date"/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Conductor" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                    <filter string="Planilla" name="group_sheet" context="{'group_by': 'sheet_id'}"/>
+                    <filter string="Fecha" name="group_date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Acción de Liquidación -->
+    <record id="action_treasury_settlement" model="ir.actions.act_window">
+        <field name="name">Liquidaciones</field>
+        <field name="res_model">treasury.settlement</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_submitted': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay liquidaciones registradas
+            </p>
+            <p>
+                Las liquidaciones se crean automáticamente desde las planillas de reparto cuando el transportista registra sus cobros.
+            </p>
+        </field>
+    </record>
+
+    <!-- Wizard: Rechazar Liquidación -->
+    <record id="view_treasury_settlement_reject_wizard_form" model="ir.ui.view">
+        <field name="name">treasury.settlement.reject.wizard.form</field>
+        <field name="model">treasury.settlement.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Rechazar Liquidación">
+                <sheet>
+                    <group>
+                        <field name="settlement_id" readonly="1"/>
+                        <field name="rejection_reason" widget="text" 
+                               placeholder="Especifique el motivo del rechazo..."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_reject" string="Rechazar" type="object" class="btn-danger"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
+

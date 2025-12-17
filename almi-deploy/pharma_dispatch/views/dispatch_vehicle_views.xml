@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_dispatch_vehicle_list" model="ir.ui.view">
+        <field name="name">dispatch.vehicle.list</field>
+        <field name="model">dispatch.vehicle</field>
+        <field name="arch" type="xml">
+            <list string="Vehículos">
+                <field name="license_plate"/>
+                <field name="brand"/>
+                <field name="model"/>
+                <field name="vehicle_type"/>
+                <field name="driver_id"/>
+                <field name="capacity_kg"/>
+                <field name="capacity_m3"/>
+                <field name="status" 
+                       decoration-success="status == 'available'"
+                       decoration-warning="status == 'in_use'"
+                       decoration-danger="status == 'maintenance'"
+                       decoration-muted="status == 'inactive'"
+                       widget="badge"/>
+                <field name="soat_expiry_date"/>
+                <field name="soat_expired" invisible="1"/>
+                <field name="route_count"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_dispatch_vehicle_form" model="ir.ui.view">
+        <field name="name">dispatch.vehicle.form</field>
+        <field name="model">dispatch.vehicle</field>
+        <field name="arch" type="xml">
+            <form string="Vehículo">
+                <header>
+                    <button name="action_set_available" type="object" 
+                            string="Disponible" class="oe_highlight"
+                            invisible="status == 'available'"/>
+                    <button name="action_set_maintenance" type="object" 
+                            string="Mantenimiento"
+                            invisible="status == 'maintenance'"/>
+                    <button name="action_set_inactive" type="object" 
+                            string="Inactivar"
+                            invisible="status == 'inactive'"/>
+                    <button name="action_view_routes" type="object" 
+                            string="Ver Rutas"
+                            invisible="route_count == 0"/>
+                    <field name="status" widget="statusbar" 
+                           statusbar_visible="available,in_use,maintenance"/>
+                </header>
+                <sheet>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="license_plate" string="Placa"/>
+                        <h1>
+                            <field name="license_plate" placeholder="ABC-123"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Información del Vehículo">
+                            <field name="vehicle_type"/>
+                            <field name="brand"/>
+                            <field name="model"/>
+                            <field name="year"/>
+                            <field name="color"/>
+                        </group>
+                        <group string="Conductor Asignado">
+                            <field name="driver_id" 
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="driver_name" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Capacidades">
+                            <field name="capacity_kg" widget="float"/>
+                            <field name="capacity_m3" widget="float"/>
+                        </group>
+                        <group string="Estado">
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="route_count"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Documentación">
+                            <field name="soat_expiry_date" 
+                                   decoration-danger="soat_expired"/>
+                            <field name="soat_expired" readonly="1"/>
+                            <field name="technical_review_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Rutas" name="routes">
+                            <field name="route_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="route_date"/>
+                                    <field name="driver_id"/>
+                                    <field name="state"/>
+                                    <field name="total_orders"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="notes" placeholder="Notas adicionales sobre el vehículo..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_dispatch_vehicle_kanban" model="ir.ui.view">
+        <field name="name">dispatch.vehicle.kanban</field>
+        <field name="model">dispatch.vehicle</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="id"/>
+                <field name="license_plate"/>
+                <field name="brand"/>
+                <field name="model"/>
+                <field name="vehicle_type"/>
+                <field name="driver_id"/>
+                <field name="driver_name"/>
+                <field name="status"/>
+                <field name="capacity_kg"/>
+                <field name="capacity_m3"/>
+                <field name="route_count"/>
+                <field name="image"/>
+                <field name="soat_expired"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('dispatch.vehicle', 'image', record.id.raw_value)" 
+                                     alt="Vehículo" class="o_image_64_contain"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="license_plate"/>
+                                </strong>
+                                <div t-if="record.brand.raw_value or record.model.raw_value">
+                                    <field name="brand"/> <field name="model"/>
+                                </div>
+                                <div>
+                                    <span class="badge" t-att-class="{'badge-success': record.status.raw_value == 'available',
+                                                                       'badge-warning': record.status.raw_value == 'in_use',
+                                                                       'badge-danger': record.status.raw_value == 'maintenance',
+                                                                       'badge-secondary': record.status.raw_value == 'inactive'}">
+                                        <field name="status"/>
+                                    </span>
+                                </div>
+                                <div t-if="record.driver_name.raw_value">
+                                    <i class="fa fa-user"/> <field name="driver_name"/>
+                                </div>
+                                <div t-if="record.capacity_kg.raw_value">
+                                    <i class="fa fa-balance-scale"/> <field name="capacity_kg"/> kg
+                                </div>
+                                <div t-if="record.capacity_m3.raw_value">
+                                    <i class="fa fa-cube"/> <field name="capacity_m3"/> m³
+                                </div>
+                                <div>
+                                    <i class="fa fa-road"/> <field name="route_count"/> ruta(s)
+                                </div>
+                                <div t-if="record.soat_expired.raw_value" class="text-danger">
+                                    <i class="fa fa-exclamation-triangle"/> SOAT vencido
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_dispatch_vehicle_search" model="ir.ui.view">
+        <field name="name">dispatch.vehicle.search</field>
+        <field name="model">dispatch.vehicle</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Vehículos">
+                <field name="license_plate"/>
+                <field name="brand"/>
+                <field name="model"/>
+                <field name="driver_id"/>
+                <separator/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactivos" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Disponibles" name="available" domain="[('status', '=', 'available')]"/>
+                <filter string="En Uso" name="in_use" domain="[('status', '=', 'in_use')]"/>
+                <filter string="En Mantenimiento" name="maintenance" domain="[('status', '=', 'maintenance')]"/>
+                <separator/>
+                <filter string="SOAT Vencido" name="soat_expired" 
+                        domain="[('soat_expired', '=', True)]"/>
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Estado" name="group_status" 
+                            context="{'group_by': 'status'}"/>
+                    <filter string="Tipo de Vehículo" name="group_vehicle_type" 
+                            context="{'group_by': 'vehicle_type'}"/>
+                    <filter string="Conductor" name="group_driver" 
+                            context="{'group_by': 'driver_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_dispatch_vehicle" model="ir.actions.act_window">
+        <field name="name">Vehículos</field>
+        <field name="res_model">dispatch.vehicle</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡Registra tu primer vehículo!
+            </p>
+            <p>
+                Gestiona la flota de vehículos para reparto.
+                Incluye capacidades, documentación y asignación de conductores.
+            </p>
+        </field>
+    </record>
+</odoo>
+

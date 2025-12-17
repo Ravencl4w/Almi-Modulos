@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    
+    <!-- Marcas Farmacéuticas Comunes en Perú y Latinoamérica -->
+    
+    <record id="brand_panadol" model="product.brand">
+        <field name="name">Panadol</field>
+        <field name="code">PNDL</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="brand_dolex" model="product.brand">
+        <field name="name">Dolex</field>
+        <field name="code">DOLX</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="brand_mejoral" model="product.brand">
+        <field name="name">Mejoral</field>
+        <field name="code">MJRL</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="brand_tempra" model="product.brand">
+        <field name="name">Tempra</field>
+        <field name="code">TMPR</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="brand_amoxidal" model="product.brand">
+        <field name="name">Amoxidal</field>
+        <field name="code">AMXD</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="brand_ibuprofeno" model="product.brand">
+        <field name="name">Ibuprofeno</field>
+        <field name="code">IBUP</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="brand_generico" model="product.brand">
+        <field name="name">Genérico</field>
+        <field name="code">GEN</field>
+        <field name="description">Productos genéricos sin marca específica</field>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>
+

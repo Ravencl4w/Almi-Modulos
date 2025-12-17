@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    
+    <!-- Zonas de Venta Iniciales para Perú -->
+    <!-- Estas son zonas de ejemplo, pueden ser modificadas según las necesidades -->
+    
+    <!-- Lima -->
+    <record id="sale_zone_lima_norte" model="sale.zone">
+        <field name="name">Lima Norte</field>
+        <field name="code">LIM-NOR</field>
+        <field name="description">Zona norte de Lima Metropolitana: Los Olivos, Independencia, San Martín de Porres, Comas, Carabayllo, Puente Piedra, Santa Rosa, Ancón</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_lima_sur" model="sale.zone">
+        <field name="name">Lima Sur</field>
+        <field name="code">LIM-SUR</field>
+        <field name="description">Zona sur de Lima Metropolitana: Villa El Salvador, Villa María del Triunfo, San Juan de Miraflores, Chorrillos, Lurín, Pachacámac, Punta Hermosa, Punta Negra, San Bartolo, Santa María del Mar</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_lima_este" model="sale.zone">
+        <field name="name">Lima Este</field>
+        <field name="code">LIM-EST</field>
+        <field name="description">Zona este de Lima Metropolitana: San Juan de Lurigancho, Ate, Santa Anita, El Agustino, La Molina, Cieneguilla, Lurigancho-Chosica, Chaclacayo</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_lima_centro" model="sale.zone">
+        <field name="name">Lima Centro</field>
+        <field name="code">LIM-CEN</field>
+        <field name="description">Zona centro de Lima Metropolitana: Cercado de Lima, Breña, La Victoria, Rímac, San Luis, Lince, Jesús María, Pueblo Libre, Magdalena, San Miguel</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_lima_moderna" model="sale.zone">
+        <field name="name">Lima Moderna</field>
+        <field name="code">LIM-MOD</field>
+        <field name="description">Zona moderna de Lima: Miraflores, San Isidro, Surco, San Borja, La Molina, Barranco, Surquillo</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <!-- Callao -->
+    <record id="sale_zone_callao" model="sale.zone">
+        <field name="name">Callao</field>
+        <field name="code">CALLAO</field>
+        <field name="description">Provincia Constitucional del Callao: Cercado del Callao, Bellavista, Carmen de la Legua, La Perla, La Punta, Ventanilla, Mi Perú</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <!-- Provincias -->
+    <record id="sale_zone_arequipa" model="sale.zone">
+        <field name="name">Arequipa</field>
+        <field name="code">AQP</field>
+        <field name="description">Departamento de Arequipa</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_cusco" model="sale.zone">
+        <field name="name">Cusco</field>
+        <field name="code">CUS</field>
+        <field name="description">Departamento de Cusco</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_trujillo" model="sale.zone">
+        <field name="name">Trujillo</field>
+        <field name="code">TRU</field>
+        <field name="description">La Libertad - Trujillo</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_chiclayo" model="sale.zone">
+        <field name="name">Chiclayo</field>
+        <field name="code">CHI</field>
+        <field name="description">Lambayeque - Chiclayo</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_piura" model="sale.zone">
+        <field name="name">Piura</field>
+        <field name="code">PIU</field>
+        <field name="description">Departamento de Piura</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_iquitos" model="sale.zone">
+        <field name="name">Iquitos</field>
+        <field name="code">IQT</field>
+        <field name="description">Loreto - Iquitos</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="sale_zone_otros" model="sale.zone">
+        <field name="name">Otras Zonas</field>
+        <field name="code">OTROS</field>
+        <field name="description">Zonas no clasificadas o especiales</field>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>
+

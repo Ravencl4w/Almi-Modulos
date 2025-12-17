@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    
+    <!-- Motivos de rechazo predefinidos -->
+    <record id="rejection_quality_defect" model="stock.rejection.reason">
+        <field name="name">Defecto de Calidad</field>
+        <field name="code">QUAL-DEF</field>
+        <field name="category">quality</field>
+    </record>
+    
+    <record id="rejection_damaged" model="stock.rejection.reason">
+        <field name="name">Producto Dañado</field>
+        <field name="code">DAMAGED</field>
+        <field name="category">damage</field>
+    </record>
+    
+    <record id="rejection_expired" model="stock.rejection.reason">
+        <field name="name">Producto Vencido</field>
+        <field name="code">EXPIRED</field>
+        <field name="category">expiry</field>
+    </record>
+    
+    <record id="rejection_contaminated" model="stock.rejection.reason">
+        <field name="name">Posible Contaminación</field>
+        <field name="code">CONTAM</field>
+        <field name="category">quality</field>
+    </record>
+    
+    <record id="rejection_wrong_product" model="stock.rejection.reason">
+        <field name="name">Producto Incorrecto</field>
+        <field name="code">WRONG-PROD</field>
+        <field name="category">other</field>
+    </record>
+
+</odoo>
+

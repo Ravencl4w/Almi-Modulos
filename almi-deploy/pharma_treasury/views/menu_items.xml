@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Menú Principal: Tesorería (submenu bajo Despacho) -->
+    <menuitem id="menu_treasury_root"
+              name="Tesorería"
+              parent="pharma_dispatch.menu_dispatch_root"
+              sequence="20"/>
+    
+    <!-- Submenú: Operaciones -->
+    <menuitem id="menu_treasury_operations"
+              name="Operaciones"
+              parent="menu_treasury_root"
+              sequence="10"/>
+    
+    <!-- Menú: Planillas de Reparto -->
+    <menuitem id="menu_treasury_settlement_sheet"
+              name="Planillas de Reparto"
+              parent="menu_treasury_operations"
+              action="action_treasury_settlement_sheet"
+              sequence="10"/>
+    
+    <!-- Menú: Liquidaciones -->
+    <menuitem id="menu_treasury_settlement"
+              name="Liquidaciones"
+              parent="menu_treasury_operations"
+              action="action_treasury_settlement"
+              sequence="20"/>
+    
+    <!-- Menú: Hojas de Cobranza -->
+    <menuitem id="menu_treasury_collection_sheet"
+              name="Hojas de Cobranza"
+              parent="menu_treasury_operations"
+              action="action_treasury_collection_sheet"
+              sequence="30"/>
+    
+    <!-- Submenú: Reportes (futuro) -->
+    <menuitem id="menu_treasury_reports"
+              name="Reportes"
+              parent="menu_treasury_root"
+              sequence="20"/>
+
+</odoo>
+

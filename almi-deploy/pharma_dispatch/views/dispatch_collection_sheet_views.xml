@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- ============================================ -->
+    <!-- ACCIONES (definidas primero para referencias) -->
+    <!-- ============================================ -->
+    
+    <!-- Acción de Líneas de Cobranza -->
+    <record id="action_dispatch_collection_line" model="ir.actions.act_window">
+        <field name="name">Líneas de Cobranza</field>
+        <field name="res_model">dispatch.collection.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay líneas de cobranza
+            </p>
+            <p>
+                Las líneas de cobranza son registradas por los conductores desde la aplicación móvil
+                cuando reciben pagos durante sus rutas de entrega.
+            </p>
+        </field>
+    </record>
+    
+    <!-- Acción de Hojas de Cobranzas -->
+    <record id="action_dispatch_collection_sheet" model="ir.actions.act_window">
+        <field name="name">Hojas de Cobranzas</field>
+        <field name="res_model">dispatch.collection.sheet</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay hojas de cobranzas
+            </p>
+            <p>
+                Las hojas de cobranzas se generan automáticamente al procesar una planilla de despacho.
+                Los conductores registran pagos desde la aplicación móvil y el liquidador los asigna a las facturas correspondientes.
+            </p>
+        </field>
+    </record>
+    
+    <!-- ============================================ -->
+    <!-- VISTAS -->
+    <!-- ============================================ -->
+    
+    <!-- Vista List de Línea de Cobranza -->
+    <record id="view_dispatch_collection_line_list" model="ir.ui.view">
+        <field name="name">dispatch.collection.line.list</field>
+        <field name="model">dispatch.collection.line</field>
+        <field name="arch" type="xml">
+            <list string="Líneas de Cobranza" 
+                  decoration-info="state=='pending'" 
+                  decoration-warning="state=='assigned'"
+                  decoration-success="state=='paid'"
+                  decoration-muted="state=='cancelled'">
+                <field name="payment_date" string="Fecha"/>
+                <field name="invoice_id" string="Factura"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="invoice_amount_total" string="Monto Factura" sum="Total Facturas"/>
+                <field name="amount" string="Monto Cobrado" sum="Total Cobrado"/>
+                <field name="collection_type" string="Tipo"/>
+                <field name="payment_method" string="Método"/>
+                <field name="registered_by" string="Registrado por"/>
+                <field name="state" widget="badge"
+                       decoration-info="state=='pending'"
+                       decoration-warning="state=='assigned'"
+                       decoration-success="state=='paid'"
+                       decoration-danger="state=='cancelled'"/>
+                <button name="action_assign_payment" string="Asignar Pago" 
+                        type="object" icon="fa-check-circle"
+                        invisible="state != 'pending'"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Vista Form de Línea de Cobranza -->
+    <record id="view_dispatch_collection_line_form" model="ir.ui.view">
+        <field name="name">dispatch.collection.line.form</field>
+        <field name="model">dispatch.collection.line</field>
+        <field name="arch" type="xml">
+            <form string="Línea de Cobranza">
+                <header>
+                    <button name="action_assign_payment" string="Asignar Pago" 
+                            type="object" class="oe_highlight"
+                            invisible="state != 'pending'"
+                            confirm="¿Confirmar la asignación del pago a esta factura?"/>
+                    <button name="action_cancel_assignment" string="Cancelar Asignación" 
+                            type="object"
+                            invisible="state not in ['assigned']"
+                            confirm="¿Está seguro de cancelar la asignación?"/>
+                    <button name="action_cancel" string="Cancelar" 
+                            type="object"
+                            invisible="state in ['paid', 'cancelled']"
+                            confirm="¿Está seguro de cancelar esta línea?"/>
+                    <button name="action_reset_to_pending" string="Reiniciar" 
+                            type="object"
+                            invisible="state not in ['assigned', 'cancelled']"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="pending,assigned,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_payment" type="object" 
+                                class="oe_stat_button" icon="fa-money"
+                                invisible="not payment_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Ver</span>
+                                <span class="o_stat_text">Pago</span>
+                            </div>
+                        </button>
+                        <button name="action_view_invoice" type="object" 
+                                class="oe_stat_button" icon="fa-file-text-o"
+                                invisible="not invoice_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Ver</span>
+                                <span class="o_stat_text">Factura</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <group>
+                        <group name="left">
+                            <field name="collection_sheet_id" readonly="1"/>
+                            <field name="settlement_id" readonly="1"/>
+                            <field name="invoice_id" 
+                                   options="{'no_create': True}"
+                                   readonly="state in ['paid', 'cancelled']"/>
+                            <field name="partner_id"/>
+                        </group>
+                        <group name="right">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="invoice_amount_total" widget="monetary" readonly="1"/>
+                            <field name="amount" widget="monetary"/>
+                            <field name="payment_date"/>
+                            <field name="registered_by"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group name="payment_info">
+                            <field name="collection_type"/>
+                            <field name="payment_method"/>
+                            <field name="bank_reference" 
+                                   invisible="payment_method not in ['transfer', 'deposit']"/>
+                            <field name="bank_id" 
+                                   invisible="payment_method not in ['transfer', 'deposit']"/>
+                        </group>
+                        <group name="payment_status">
+                            <field name="payment_id" readonly="1"/>
+                            <field name="payment_state" readonly="1"/>
+                            <field name="assignment_date" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <field name="notes" placeholder="Observaciones sobre el pago..."/>
+                    </group>
+                    
+                    <group name="route_info" invisible="not route_line_id">
+                        <field name="route_line_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Vista List de Hoja de Cobranzas -->
+    <record id="view_dispatch_collection_sheet_list" model="ir.ui.view">
+        <field name="name">dispatch.collection.sheet.list</field>
+        <field name="model">dispatch.collection.sheet</field>
+        <field name="arch" type="xml">
+            <list string="Hojas de Cobranzas" 
+                  decoration-info="state=='draft'" 
+                  decoration-success="state=='validated'"
+                  decoration-muted="state=='cancelled'">
+                <field name="name"/>
+                <field name="settlement_id"/>
+                <field name="driver_id"/>
+                <field name="liquidator_id"/>
+                <field name="line_count"/>
+                <field name="total_collected" sum="Total Cobrado"/>
+                <field name="total_pending" sum="Pendiente"/>
+                <field name="total_paid" sum="Pagado"/>
+                <field name="state" widget="badge"
+                       decoration-info="state=='draft'"
+                       decoration-success="state=='validated'"
+                       decoration-danger="state=='cancelled'"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Vista Form de Hoja de Cobranzas -->
+    <record id="view_dispatch_collection_sheet_form" model="ir.ui.view">
+        <field name="name">dispatch.collection.sheet.form</field>
+        <field name="model">dispatch.collection.sheet</field>
+        <field name="arch" type="xml">
+            <form string="Hoja de Cobranzas">
+                <header>
+                    <button name="action_assign_liquidator" string="Asignarme como Liquidador" 
+                            type="object" class="oe_highlight"
+                            invisible="liquidator_id"/>
+                    <button name="action_validate" string="Validar" 
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"
+                            confirm="¿Está seguro de validar esta hoja? Todas las líneas deben estar asignadas."/>
+                    <button name="action_cancel" string="Cancelar" 
+                            type="object"
+                            invisible="state in ['validated', 'cancelled']"
+                            confirm="¿Está seguro de cancelar esta hoja?"/>
+                    <button name="action_reset_to_draft" string="Reiniciar a Borrador" 
+                            type="object"
+                            invisible="state not in ['validated', 'cancelled']"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,validated"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_settlement" type="object" 
+                                class="oe_stat_button" icon="fa-calculator">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Ver</span>
+                                <span class="o_stat_text">Liquidación</span>
+                            </div>
+                        </button>
+                        <button name="%(action_dispatch_collection_line)d" type="action"
+                                class="oe_stat_button" icon="fa-list">
+                            <field name="line_count" widget="statinfo" string="Líneas"/>
+                        </button>
+                        <button name="%(action_dispatch_collection_line)d" type="action"
+                                class="oe_stat_button" icon="fa-clock-o"
+                                context="{'search_default_pending': 1}">
+                            <field name="pending_count" widget="statinfo" string="Pendientes"/>
+                        </button>
+                        <button name="%(action_dispatch_collection_line)d" type="action"
+                                class="oe_stat_button" icon="fa-check"
+                                context="{'search_default_paid': 1}">
+                            <field name="paid_count" widget="statinfo" string="Pagadas"/>
+                        </button>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group name="left">
+                            <field name="settlement_id" readonly="1"/>
+                            <field name="sheet_id" readonly="1"/>
+                            <field name="driver_id" readonly="1"/>
+                        </group>
+                        <group name="right">
+                            <field name="liquidator_id"/>
+                            <field name="validation_date" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group name="totals_left">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="total_collected" widget="monetary"/>
+                            <field name="total_pending" widget="monetary"/>
+                        </group>
+                        <group name="totals_right">
+                            <field name="total_assigned" widget="monetary"/>
+                            <field name="total_paid" widget="monetary"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Líneas de Cobranza" name="lines">
+                            <field name="collection_line_ids" context="{'default_collection_sheet_id': id}">
+                                <list string="Líneas de Cobranza" editable="bottom"
+                                      decoration-info="state=='pending'" 
+                                      decoration-warning="state=='assigned'"
+                                      decoration-success="state=='paid'"
+                                      decoration-muted="state=='cancelled'">
+                                    <field name="payment_date" string="Fecha"/>
+                                    <field name="invoice_id" string="Factura" options="{'no_create': True}"/>
+                                    <field name="partner_id" string="Cliente" readonly="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="invoice_amount_total" string="Monto Factura" readonly="1" sum="Total Facturas"/>
+                                    <field name="amount" string="Monto Cobrado" sum="Total Cobrado"/>
+                                    <field name="collection_type" string="Tipo"/>
+                                    <field name="payment_method" string="Método"/>
+                                    <field name="bank_reference" string="Ref. Bancaria"/>
+                                    <field name="registered_by" string="Registrado por"/>
+                                    <field name="notes" string="Observaciones"/>
+                                    <field name="state" widget="badge"
+                                           decoration-info="state=='pending'"
+                                           decoration-warning="state=='assigned'"
+                                           decoration-success="state=='paid'"
+                                           decoration-danger="state=='cancelled'"/>
+                                    <button name="action_assign_payment" string="Asignar" 
+                                            type="object" icon="fa-check-circle"
+                                            invisible="state != 'pending'"
+                                            title="Asignar pago y crear en Odoo"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Observaciones" name="notes">
+                            <field name="notes" placeholder="Observaciones sobre la hoja de cobranzas..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Vista Search de Hoja de Cobranzas -->
+    <record id="view_dispatch_collection_sheet_search" model="ir.ui.view">
+        <field name="name">dispatch.collection.sheet.search</field>
+        <field name="model">dispatch.collection.sheet</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Hojas de Cobranzas">
+                <field name="name"/>
+                <field name="settlement_id"/>
+                <field name="driver_id"/>
+                <field name="liquidator_id"/>
+                <separator/>
+                <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Validado" name="validated" domain="[('state', '=', 'validated')]"/>
+                <separator/>
+                <filter string="Con Pendientes" name="with_pending" 
+                        domain="[('pending_count', '>', 0)]"/>
+                <filter string="Mis Hojas" name="my_sheets" 
+                        domain="[('liquidator_id', '=', uid)]"/>
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Conductor" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                    <filter string="Liquidador" name="group_liquidator" context="{'group_by': 'liquidator_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Vista Search de Línea de Cobranza -->
+    <record id="view_dispatch_collection_line_search" model="ir.ui.view">
+        <field name="name">dispatch.collection.line.search</field>
+        <field name="model">dispatch.collection.line</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Líneas de Cobranza">
+                <field name="collection_sheet_id"/>
+                <field name="invoice_id"/>
+                <field name="partner_id"/>
+                <field name="registered_by"/>
+                <separator/>
+                <filter string="Pendiente" name="pending" domain="[('state', '=', 'pending')]"/>
+                <filter string="Asignado" name="assigned" domain="[('state', '=', 'assigned')]"/>
+                <filter string="Pagado" name="paid" domain="[('state', '=', 'paid')]"/>
+                <separator/>
+                <filter string="Efectivo" name="cash" domain="[('collection_type', '=', 'cash')]"/>
+                <filter string="Crédito" name="credit" domain="[('collection_type', '=', 'credit')]"/>
+                <filter string="Depósito" name="deposit" domain="[('collection_type', '=', 'deposit')]"/>
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Tipo" name="group_type" context="{'group_by': 'collection_type'}"/>
+                    <filter string="Conductor" name="group_driver" context="{'group_by': 'registered_by'}"/>
+                    <filter string="Fecha" name="group_date" context="{'group_by': 'payment_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+</odoo>
+

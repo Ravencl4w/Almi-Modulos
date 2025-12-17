@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista List de Planilla de Reparto -->
+    <record id="view_treasury_settlement_sheet_list" model="ir.ui.view">
+        <field name="name">treasury.settlement.sheet.list</field>
+        <field name="model">treasury.settlement.sheet</field>
+        <field name="arch" type="xml">
+            <list string="Planillas de Reparto" create="1" edit="0" delete="0">
+                <field name="name" string="Número"/>
+                <field name="date"/>
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <field name="total_invoices" string="Facturas"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="total_collected" sum="Cobrado"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'"
+                       decoration-success="state == 'confirmed'"
+                       decoration-primary="state == 'in_route'"
+                       decoration-warning="state == 'settled'"
+                       decoration-muted="state == 'closed'"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Vista Form de Planilla de Reparto -->
+    <record id="view_treasury_settlement_sheet_form" model="ir.ui.view">
+        <field name="name">treasury.settlement.sheet.form</field>
+        <field name="model">treasury.settlement.sheet</field>
+        <field name="arch" type="xml">
+            <form string="Planilla de Reparto">
+                <header>
+                    <button name="action_confirm" string="Confirmar" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'" 
+                            groups="stock.group_stock_user"/>
+                    <button name="action_mark_in_route" string="Marcar En Ruta" type="object" 
+                            class="oe_highlight" invisible="state != 'confirmed'" 
+                            groups="stock.group_stock_user"/>
+                    <button name="action_assign_to_route" string="Asignar a Ruta" type="object" 
+                            invisible="state not in ['confirmed', 'in_route']" 
+                            groups="stock.group_stock_user"/>
+                    <button name="action_create_settlement" string="Crear Liquidación" type="object" 
+                            invisible="state not in ['in_route', 'settled']" 
+                            groups="account.group_account_user"/>
+                    <button name="action_close" string="Cerrar" type="object" 
+                            invisible="state != 'settled'" 
+                            groups="account.group_account_manager"/>
+                    <button name="action_cancel" string="Cancelar" type="object" 
+                            invisible="state in ['closed', 'cancelled']" 
+                            groups="stock.group_stock_manager"/>
+                    <button name="action_reset_to_draft" string="Reiniciar" type="object" 
+                            invisible="state not in ['confirmed', 'cancelled']" 
+                            groups="stock.group_stock_manager"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,confirmed,in_route,settled,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoices" type="object" 
+                                class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="total_invoices" widget="statinfo" 
+                                   string="Facturas"/>
+                        </button>
+                        <button name="action_view_settlements" type="object" 
+                                class="oe_stat_button" icon="fa-calculator"
+                                invisible="settlement_count == 0">
+                            <field name="settlement_count" widget="statinfo" 
+                                   string="Liquidaciones"/>
+                        </button>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="route_id" readonly="state != 'draft'"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="driver_id" readonly="1"/>
+                            <field name="vehicle_id" readonly="1"/>
+                            <field name="has_approved_settlement" invisible="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Facturas" name="invoices">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom" create="0" delete="1">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="invoice_id" 
+                                           domain="[('move_type', '=', 'out_invoice'), ('state', '=', 'posted'), ('payment_state', 'in', ['not_paid', 'partial'])]"/>
+                                    <field name="partner_id"/>
+                                    <field name="sale_zone_id"/>
+                                    <field name="amount_total" sum="Total"/>
+                                    <field name="amount_collected" sum="Cobrado"/>
+                                    <field name="delivery_status"/>
+                                    <field name="collection_status"/>
+                                    <button name="action_view_invoice" type="object" 
+                                            icon="fa-external-link" title="Ver Factura"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_amount" widget="monetary"/>
+                                <field name="total_collected" widget="monetary"/>
+                                <field name="total_pending" widget="monetary"/>
+                            </group>
+                            <div class="oe_chatter">
+                                <button name="action_open_mass_invoice_selection" 
+                                        string="Seleccionar Facturas" 
+                                        type="object" 
+                                        class="btn-primary"
+                                        invisible="state != 'draft'"
+                                        icon="fa-plus-circle"/>
+                            </div>
+                        </page>
+                        
+                        <page string="Estadísticas" name="statistics">
+                            <group>
+                                <group string="Entrega">
+                                    <field name="delivered_count"/>
+                                    <field name="not_delivered_count"/>
+                                    <field name="pending_count"/>
+                                </group>
+                                <group string="Cobranza">
+                                    <field name="total_amount" widget="monetary"/>
+                                    <field name="total_collected" widget="monetary"/>
+                                    <field name="total_pending" widget="monetary"/>
+                                </group>
+                            </group>
+                        </page>
+                        
+                        <page string="Notas" name="notes">
+                            <field name="notes" placeholder="Observaciones adicionales..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista Kanban de Planilla de Reparto -->
+    <record id="view_treasury_settlement_sheet_kanban" model="ir.ui.view">
+        <field name="name">treasury.settlement.sheet.kanban</field>
+        <field name="model">treasury.settlement.sheet</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" default_group_by="state">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="driver_id"/>
+                <field name="total_invoices"/>
+                <field name="total_amount"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="row">
+                            <div class="col-6">
+                                <strong><field name="name"/></strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <field name="state" widget="badge"/>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <span><i class="fa fa-calendar"/> <field name="date"/></span>
+                            </div>
+                        </div>
+                        <div class="row" t-if="record.driver_id.value">
+                            <div class="col-12">
+                                <span><i class="fa fa-user"/> <field name="driver_id"/></span>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-6">
+                                <strong><field name="total_invoices"/> facturas</strong>
+                            </div>
+                            <div class="col-6 text-end">
+                                <strong><field name="total_amount" widget="monetary"/></strong>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vista Search de Planilla de Reparto -->
+    <record id="view_treasury_settlement_sheet_search" model="ir.ui.view">
+        <field name="name">treasury.settlement.sheet.search</field>
+        <field name="model">treasury.settlement.sheet</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Planillas">
+                <field name="name" string="Planilla"/>
+                <field name="driver_id" string="Conductor"/>
+                <field name="vehicle_id" string="Vehículo"/>
+                <field name="route_id" string="Ruta"/>
+                <separator/>
+                <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmadas" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter string="En Ruta" name="in_route" domain="[('state', '=', 'in_route')]"/>
+                <filter string="Liquidadas" name="settled" domain="[('state', '=', 'settled')]"/>
+                <separator/>
+                <filter string="Fecha" name="date" date="date"/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Conductor" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                    <filter string="Fecha" name="group_date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Acción de Planilla de Reparto -->
+    <record id="action_treasury_settlement_sheet" model="ir.actions.act_window">
+        <field name="name">Planillas de Reparto</field>
+        <field name="res_model">treasury.settlement.sheet</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_confirmed': 1, 'search_default_in_route': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear una nueva Planilla de Reparto
+            </p>
+            <p>
+                Las planillas agrupan facturas para asignar a un transportista y hacer seguimiento de cobranzas.
+            </p>
+        </field>
+    </record>
+
+    <!-- Wizard: Selección Masiva de Facturas -->
+    <record id="view_treasury_invoice_selection_wizard_form" model="ir.ui.view">
+        <field name="name">treasury.invoice.selection.wizard.form</field>
+        <field name="model">treasury.invoice.selection.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Seleccionar Facturas">
+                <sheet>
+                    <group>
+                        <group string="Filtros">
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="partner_ids" widget="many2many_tags"/>
+                            <field name="zone_ids" widget="many2many_tags"/>
+                            <field name="salesperson_ids" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="payment_state"/>
+                            <field name="sunat_estado"/>
+                            <field name="amount_min"/>
+                            <field name="amount_max"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <button name="action_apply_filters" string="Aplicar Filtros" 
+                                type="object" class="btn-secondary"/>
+                        <button name="action_select_all" string="Seleccionar Todas" 
+                                type="object" class="btn-secondary"/>
+                        <button name="action_clear_selection" string="Limpiar Selección" 
+                                type="object" class="btn-secondary"/>
+                    </group>
+                    
+                    <group>
+                        <group>
+                            <field name="total_available" readonly="1"/>
+                            <field name="total_selected" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="total_amount_selected" widget="monetary" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Facturas Disponibles" name="available">
+                            <field name="invoice_ids" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="invoice_date"/>
+                                    <field name="amount_total"/>
+                                    <field name="payment_state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Facturas Seleccionadas" name="selected">
+                            <field name="selected_invoice_ids" widget="many2many">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="invoice_date"/>
+                                    <field name="amount_total" sum="Total"/>
+                                    <field name="payment_state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_add_to_sheet" string="Agregar a Planilla" 
+                            type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard: Asignar Planilla a Ruta -->
+    <record id="view_treasury_settlement_sheet_assign_wizard_form" model="ir.ui.view">
+        <field name="name">treasury.settlement.sheet.assign.wizard.form</field>
+        <field name="model">treasury.settlement.sheet.assign.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Asignar Planilla a Ruta">
+                <sheet>
+                    <group>
+                        <field name="sheet_id" readonly="1"/>
+                        <field name="assignment_type" widget="radio"/>
+                    </group>
+                    
+                    <group invisible="assignment_type != 'existing'">
+                        <field name="route_id" required="assignment_type == 'existing'"/>
+                    </group>
+                    
+                    <group invisible="assignment_type != 'new'">
+                        <field name="route_date" required="assignment_type == 'new'"/>
+                        <field name="driver_id" required="assignment_type == 'new'"/>
+                        <field name="vehicle_id" required="assignment_type == 'new'"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_assign" string="Asignar" type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Wizard: Agregar Factura Individual a Planilla -->
+    <record id="view_treasury_add_invoice_to_sheet_wizard_form" model="ir.ui.view">
+        <field name="name">treasury.add.invoice.to.sheet.wizard.form</field>
+        <field name="model">treasury.add.invoice.to.sheet.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Agregar Factura a Planilla">
+                <sheet>
+                    <group>
+                        <field name="invoice_id" readonly="1"/>
+                        <field name="sheet_id"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_add" string="Agregar" type="object" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
+

@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_temperature_record_user,temperature.record.user,model_stock_temperature_record,base.group_user,1,0,0,0
+access_temperature_record_stock_user,temperature.record.stock.user,model_stock_temperature_record,stock.group_stock_user,1,1,1,0
+access_temperature_record_stock_manager,temperature.record.stock.manager,model_stock_temperature_record,stock.group_stock_manager,1,1,1,1
+access_expiry_alert_user,expiry.alert.user,model_stock_expiry_alert,base.group_user,1,0,0,0
+access_expiry_alert_stock_user,expiry.alert.stock.user,model_stock_expiry_alert,stock.group_stock_user,1,1,1,0
+access_expiry_alert_stock_manager,expiry.alert.stock.manager,model_stock_expiry_alert,stock.group_stock_manager,1,1,1,1
+access_rejection_reason_user,rejection.reason.user,model_stock_rejection_reason,base.group_user,1,0,0,0
+access_rejection_reason_stock_manager,rejection.reason.stock.manager,model_stock_rejection_reason,stock.group_stock_manager,1,1,1,1
+

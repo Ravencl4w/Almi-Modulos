@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Menú principal Farmacia Inventario -->
+    <menuitem id="menu_pharma_inventory_root"
+              name="Farmacia Inventario"
+              parent="stock.menu_stock_root"
+              sequence="100"/>
+    
+    <!-- Submenú Control de Vencimientos -->
+    <menuitem id="menu_expiry_control"
+              name="Control de Vencimientos"
+              parent="menu_pharma_inventory_root"
+              sequence="10"/>
+    
+    <menuitem id="menu_expiry_alerts"
+              name="Alertas de Vencimiento"
+              parent="menu_expiry_control"
+              action="action_expiry_alert"
+              sequence="10"/>
+    
+    <menuitem id="menu_dashboard_expiry"
+              name="Dashboard"
+              parent="menu_expiry_control"
+              action="action_dashboard_expiry"
+              sequence="5"/>
+    
+    <!-- Submenú Control de Temperatura -->
+    <menuitem id="menu_temperature_control"
+              name="Control de Temperatura"
+              parent="menu_pharma_inventory_root"
+              sequence="20"/>
+    
+    <menuitem id="menu_temperature_records"
+              name="Registros de Temperatura"
+              parent="menu_temperature_control"
+              action="action_temperature_record"
+              sequence="10"/>
+
+</odoo>
+
