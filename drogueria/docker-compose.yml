@@ -20,7 +20,7 @@ services:
     image: postgres:16
     container_name: odoo_almi_db
     environment:
-      POSTGRES_DB: almi
+      POSTGRES_DB: drogueria
       POSTGRES_PASSWORD: p12346
       POSTGRES_USER: odooAlmi
     volumes:
