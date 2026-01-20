@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_dispatch_sheet_list" model="ir.ui.view">
+        <field name="name">dispatch.sheet.list</field>
+        <field name="model">dispatch.sheet</field>
+        <field name="arch" type="xml">
+            <list string="Planillas de Despacho" decoration-info="state=='draft'" 
+                  decoration-success="state=='confirmed'" decoration-muted="state=='cancelled'">
+                <field name="name"/>
+                <field name="sheet_date"/>
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <field name="invoice_count" string="Facturas"/>
+                <field name="partner_count" string="Clientes"/>
+                <field name="total_amount" widget="monetary"/>
+                <field name="route_id"/>
+                <field name="state" widget="badge" decoration-info="state=='draft'" 
+                       decoration-success="state=='confirmed'" decoration-muted="state=='cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_dispatch_sheet_form" model="ir.ui.view">
+        <field name="name">dispatch.sheet.form</field>
+        <field name="model">dispatch.sheet</field>
+        <field name="arch" type="xml">
+            <form string="Planilla de Despacho">
+                <header>
+                    <button name="action_confirm" string="Confirmar y Crear Ruta" type="object" 
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_view_route" string="Ver Ruta" type="object" 
+                            class="oe_highlight" invisible="not route_id"/>
+                    <button name="action_reset_to_draft" string="Reiniciar a Borrador" type="object" 
+                            invisible="state not in ['cancelled']"/>
+                    <button name="action_cancel" string="Cancelar" type="object" 
+                            invisible="state in ['cancelled', 'processed']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,processed"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_invoices" type="object" 
+                                class="oe_stat_button" icon="fa-file-text-o">
+                            <field name="invoice_count" widget="statinfo" string="Facturas"/>
+                        </button>
+                        <button name="action_view_route" type="object" 
+                                class="oe_stat_button" icon="fa-truck" 
+                                invisible="not route_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Ruta</span>
+                            </div>
+                        </button>
+                        <button name="action_view_settlement" type="object" 
+                                class="oe_stat_button" icon="fa-calculator"
+                                invisible="not has_settlement">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Liquidación</span>
+                            </div>
+                        </button>
+                        <field name="has_settlement" invisible="1"/>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="sheet_date" readonly="state != 'draft'"/>
+                            <field name="driver_id" readonly="state != 'draft'"/>
+                            <field name="vehicle_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="partner_count"/>
+                            <field name="total_amount" widget="monetary"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="route_id" readonly="1" invisible="not route_id"/>
+                            <field name="route_state" invisible="not route_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Facturas" name="invoices">
+                            <field name="invoice_ids" readonly="state != 'draft'">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="invoice_date"/>
+                                    <field name="partner_id"/>
+                                    <field name="amount_total" sum="Total"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="notes" placeholder="Observaciones adicionales..." readonly="state != 'draft'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_dispatch_sheet_kanban" model="ir.ui.view">
+        <field name="name">dispatch.sheet.kanban</field>
+        <field name="model">dispatch.sheet</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="sheet_date"/>
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <field name="invoice_count"/>
+                <field name="total_amount"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                </div>
+                                <span class="float-end badge text-bg-secondary">
+                                    <field name="state"/>
+                                </span>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <div>
+                                    <i class="fa fa-calendar"/> <field name="sheet_date"/>
+                                </div>
+                                <div>
+                                    <i class="fa fa-user"/> <field name="driver_id"/>
+                                </div>
+                                <div>
+                                    <i class="fa fa-truck"/> <field name="vehicle_id"/>
+                                </div>
+                                <div>
+                                    <i class="fa fa-file-text-o"/> <field name="invoice_count"/> Facturas
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left">
+                                    <strong><field name="total_amount" widget="monetary"/></strong>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_dispatch_sheet_search" model="ir.ui.view">
+        <field name="name">dispatch.sheet.search</field>
+        <field name="model">dispatch.sheet</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Planillas">
+                <field name="name" string="Planilla"/>
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <field name="invoice_ids"/>
+                <separator/>
+                <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmado" name="confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Procesado" name="processed" domain="[('state', '=', 'processed')]"/>
+                <separator/>
+                <filter string="Hoy" name="today" domain="[('sheet_date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Esta Semana" name="this_week" 
+                        domain="[('sheet_date', '&gt;=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+                                 ('sheet_date', '&lt;=', (context_today() + datetime.timedelta(days=6-context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Agrupar por">
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Fecha" name="group_date" context="{'group_by': 'sheet_date'}"/>
+                    <filter string="Conductor" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                    <filter string="Vehículo" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_dispatch_sheet" model="ir.actions.act_window">
+        <field name="name">Planillas de Despacho</field>
+        <field name="res_model">dispatch.sheet</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_draft': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear una nueva planilla de despacho
+            </p>
+            <p>
+                Las planillas agrupan facturas de venta para generar rutas de reparto.
+                Seleccione facturas desde el módulo de facturación y cree una planilla 
+                para asignar conductor y vehículo.
+            </p>
+        </field>
+    </record>
+
+</odoo>
+

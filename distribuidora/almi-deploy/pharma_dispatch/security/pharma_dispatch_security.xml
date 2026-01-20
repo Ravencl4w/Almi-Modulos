@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Grupo para Conductores/Transportistas -->
+        <record id="group_pharma_dispatch_driver" model="res.groups">
+            <field name="name">Conductor / Transportista</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="comment">Conductores con acceso a la aplicación móvil para gestionar sus rutas de reparto</field>
+        </record>
+    </data>
+</odoo>
+

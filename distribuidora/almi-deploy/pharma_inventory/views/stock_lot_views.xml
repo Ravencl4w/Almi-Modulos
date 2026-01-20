@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vista de formulario extendida para Lotes -->
+    <record id="view_stock_lot_form_pharma" model="ir.ui.view">
+        <field name="name">stock.lot.form.pharma</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Agregar alertas sobre vencimiento -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-danger" role="alert" 
+                     invisible="expiry_state != 'expired'">
+                    <strong>⚠️ LOTE VENCIDO</strong>
+                    <p>Este lote expiró hace <field name="days_to_expiry" readonly="1"/> días. No se puede comercializar.</p>
+                </div>
+                
+                <div class="alert alert-warning" role="alert" 
+                     invisible="expiry_state != 'alert_30'">
+                    <strong>⚠️ VENCE PRONTO</strong>
+                    <p>Este lote vence en <field name="days_to_expiry" readonly="1"/> días.</p>
+                </div>
+            </xpath>
+            
+            <!-- Agregar campos de vencimiento y canje en el notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Control Farmacéutico" name="pharma_control">
+                    <group string="Control de Vencimiento y Canje">
+                        <group>
+                            <field name="expiry_state" widget="badge"
+                                   decoration-success="expiry_state == 'ok'"
+                                   decoration-info="expiry_state == 'no_expiry'"
+                                   decoration-warning="expiry_state in ['alert_90', 'alert_60']"
+                                   decoration-danger="expiry_state in ['alert_30', 'expired']"/>
+                            <field name="days_to_expiry"/>
+                            <field name="can_be_exchanged" widget="boolean"/>
+                        </group>
+                        
+                        <group>
+                            <field name="exchange_state" widget="badge"
+                                   decoration-info="exchange_state == 'no_exchange'"
+                                   decoration-warning="exchange_state == 'pending'"
+                                   decoration-success="exchange_state == 'exchanged'"/>
+                            <field name="exchange_date" invisible="exchange_state != 'exchanged'"/>
+                            <field name="exchange_reference" invisible="exchange_state not in ['in_process', 'exchanged']"/>
+                            <field name="exchange_responsible_id" invisible="exchange_state == 'no_exchange'"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Control de Calidad">
+                        <group>
+                            <field name="quality_state" widget="badge"
+                                   decoration-success="quality_state == 'pass'"
+                                   decoration-warning="quality_state == 'quarantine'"
+                                   decoration-danger="quality_state == 'rejected'"/>
+                            <field name="requires_cold_chain" widget="boolean"/>
+                        </group>
+                        <group>
+                            <field name="rejection_reason" invisible="quality_state != 'rejected'" placeholder="Motivo del rechazo..."/>
+                        </group>
+                    </group>
+                    
+                    <group string="Notas de Canje" invisible="exchange_state == 'no_exchange'">
+                        <field name="exchange_notes" nolabel="1" placeholder="Observaciones sobre el canje..."/>
+                    </group>
+                </page>
+            </xpath>
+            
+            <!-- Agregar header con botones de acción -->
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_request_exchange" type="object" 
+                            string="Solicitar Canje"
+                            class="btn-warning"
+                            invisible="not can_be_exchanged"/>
+                    <button name="action_mark_as_exchanged" type="object" 
+                            string="Marcar Canjeado"
+                            class="btn-success"
+                            invisible="exchange_state != 'in_process'"/>
+                    <button name="action_move_to_quarantine" type="object" 
+                            string="Mover a Cuarentena"
+                            class="btn-warning"
+                            invisible="quality_state != 'pass'"/>
+                </header>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Vista de lista extendida para Lotes -->
+    <record id="view_stock_lot_list_pharma" model="ir.ui.view">
+        <field name="name">stock.lot.list.pharma</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="expiry_state" optional="show" widget="badge"
+                       decoration-success="expiry_state == 'ok'"
+                       decoration-warning="expiry_state in ['alert_90', 'alert_60']"
+                       decoration-danger="expiry_state in ['alert_30', 'expired']"/>
+                <field name="days_to_expiry" optional="show"/>
+                <field name="exchange_state" optional="hide" widget="badge"/>
+                <field name="quality_state" optional="show" widget="badge"
+                       decoration-success="quality_state == 'pass'"
+                       decoration-danger="quality_state == 'rejected'"/>
+            </xpath>
+            
+        </field>
+    </record>
+    
+    <!-- Filtros de búsqueda extendidos -->
+    <record id="view_stock_lot_search_pharma" model="ir.ui.view">
+        <field name="name">stock.lot.search.pharma</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            
+            <!-- Agregar filtros farmacéuticos después del último campo de búsqueda -->
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter string="Vencidos" name="expired" domain="[('expiry_state', '=', 'expired')]"/>
+                <filter string="Por Vencer (30 días)" name="expiring_30" domain="[('expiry_state', '=', 'alert_30')]"/>
+                <filter string="Por Vencer (60 días)" name="expiring_60" domain="[('expiry_state', '=', 'alert_60')]"/>
+                <filter string="Pueden Canjearse" name="can_exchange" domain="[('can_be_exchanged', '=', True)]"/>
+                <separator/>
+                <filter string="En Cuarentena" name="quarantine" domain="[('quality_state', '=', 'quarantine')]"/>
+                <filter string="Rechazados" name="rejected" domain="[('quality_state', '=', 'rejected')]"/>
+                <filter string="Cadena de Frío" name="cold_chain" domain="[('requires_cold_chain', '=', True)]"/>
+                
+                <!-- Agregar grupos -->
+                <group expand="0" string="Agrupar Por Farmacia">
+                    <filter string="Estado de Vencimiento" name="group_expiry" context="{'group_by': 'expiry_state'}"/>
+                    <filter string="Estado de Canje" name="group_exchange" context="{'group_by': 'exchange_state'}"/>
+                    <filter string="Estado de Calidad" name="group_quality" context="{'group_by': 'quality_state'}"/>
+                </group>
+            </xpath>
+            
+        </field>
+    </record>
+
+</odoo>
+

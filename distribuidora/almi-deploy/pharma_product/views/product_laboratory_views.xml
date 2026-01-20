@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vista de formulario para Laboratorios -->
+    <record id="view_product_laboratory_form" model="ir.ui.view">
+        <field name="name">product.laboratory.form</field>
+        <field name="model">product.laboratory</field>
+        <field name="arch" type="xml">
+            <form string="Laboratorio Fabricante">
+                <header>
+                    <button name="action_view_products" type="object" string="Ver Productos" class="btn-primary"/>
+                    <button name="action_view_lines" type="object" string="Ver Líneas" class="btn-secondary" invisible="line_count == 0"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                    
+                    <field name="logo" widget="image" class="oe_avatar"/>
+                    <field name="logo_filename" invisible="1"/>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Nombre del laboratorio"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Información General">
+                            <field name="code"/>
+                            <field name="short_name"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="country_id"/>
+                        </group>
+                        
+                        <group string="Contacto">
+                            <field name="partner_id"/>
+                            <field name="website" widget="url"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Estadísticas">
+                            <field name="product_count"/>
+                            <field name="line_count"/>
+                        </group>
+                        <group></group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Productos" name="products">
+                            <field name="product_ids" mode="list" context="{'default_laboratory_id': id}">
+                                <list string="Productos">
+                                    <field name="default_code"/>
+                                    <field name="name"/>
+                                    <field name="laboratory_line_id"/>
+                                    <field name="list_price"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Líneas de Producto" name="lines">
+                            <field name="line_ids" mode="list" context="{'default_laboratory_id': id}">
+                                <list string="Líneas">
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="product_count"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Información Adicional" name="info">
+                            <group>
+                                <field name="description" nolabel="1" placeholder="Descripción del laboratorio..."/>
+                            </group>
+                            <group>
+                                <field name="notes" nolabel="1" placeholder="Notas adicionales..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Vista de lista para Laboratorios -->
+    <record id="view_product_laboratory_list" model="ir.ui.view">
+        <field name="name">product.laboratory.list</field>
+        <field name="model">product.laboratory</field>
+        <field name="arch" type="xml">
+            <list string="Laboratorios">
+                <field name="name"/>
+                <field name="short_name"/>
+                <field name="code"/>
+                <field name="country_id"/>
+                <field name="product_count"/>
+                <field name="line_count"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Vista Kanban para Laboratorios -->
+    <record id="view_product_laboratory_kanban" model="ir.ui.view">
+        <field name="name">product.laboratory.kanban</field>
+        <field name="model">product.laboratory</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="id"/>
+                <field name="name"/>
+                <field name="short_name"/>
+                <field name="product_count"/>
+                <field name="line_count"/>
+                <field name="logo"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="oe_kanban_card_content">
+                            <div class="oe_kanban_card_header">
+                                <field name="logo" widget="image" class="oe_avatar"/>
+                                <div class="oe_kanban_card_title">
+                                    <strong><field name="name"/></strong>
+                                    <div invisible="not short_name">
+                                        <span class="badge text-bg-info"><field name="short_name"/></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="oe_kanban_card_body">
+                                <div><i class="fa fa-cubes"/> <field name="product_count"/> productos</div>
+                                <div><i class="fa fa-list"/> <field name="line_count"/> líneas</div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    
+    <!-- Vista de búsqueda para Laboratorios -->
+    <record id="view_product_laboratory_search" model="ir.ui.view">
+        <field name="name">product.laboratory.search</field>
+        <field name="model">product.laboratory</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Laboratorios">
+                <field name="name"/>
+                <field name="short_name"/>
+                <field name="code"/>
+                <field name="country_id"/>
+                
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactivos" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Con Productos" name="with_products" domain="[('product_count', '>', 0)]"/>
+                <filter string="Con Líneas" name="with_lines" domain="[('line_count', '>', 0)]"/>
+                
+                <group expand="0" string="Agrupar Por">
+                    <filter string="País" name="group_country" context="{'group_by': 'country_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Acción para abrir Laboratorios -->
+    <record id="action_product_laboratory" model="ir.actions.act_window">
+        <field name="name">Laboratorios</field>
+        <field name="res_model">product.laboratory</field>
+        <field name="view_mode">list,form,kanban</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crea tu primer laboratorio fabricante
+            </p>
+        </field>
+    </record>
+
+</odoo>
+

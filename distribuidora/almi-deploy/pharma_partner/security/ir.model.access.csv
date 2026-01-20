@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_zone_user,sale.zone.user,model_sale_zone,base.group_user,1,0,0,0
+access_sale_zone_sales_user,sale.zone.sales.user,model_sale_zone,sales_team.group_sale_salesman,1,1,1,0
+access_sale_zone_sales_manager,sale.zone.sales.manager,model_sale_zone,sales_team.group_sale_manager,1,1,1,1
+access_sale_zone_system,sale.zone.system,model_sale_zone,base.group_system,1,1,1,1
+

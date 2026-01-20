@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    
+    <!-- Laboratorios Farmacéuticos Principales -->
+    
+    <record id="laboratory_bayer" model="product.laboratory">
+        <field name="name">Bayer (Alemania)</field>
+        <field name="code">LAB-BAY</field>
+        <field name="short_name">BAYER</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="laboratory_pfizer" model="product.laboratory">
+        <field name="name">Pfizer (EE.UU.)</field>
+        <field name="code">LAB-PFZ</field>
+        <field name="short_name">PFIZER</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="laboratory_novartis" model="product.laboratory">
+        <field name="name">Novartis (Suiza)</field>
+        <field name="code">LAB-NOV</field>
+        <field name="short_name">NOVARTIS</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="laboratory_roche" model="product.laboratory">
+        <field name="name">Roche (Suiza)</field>
+        <field name="code">LAB-RCH</field>
+        <field name="short_name">ROCHE</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="laboratory_gsk" model="product.laboratory">
+        <field name="name">GlaxoSmithKline - GSK (Reino Unido)</field>
+        <field name="code">LAB-GSK</field>
+        <field name="short_name">GSK</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="laboratory_sanofiaventis" model="product.laboratory">
+        <field name="name">Sanofi-Aventis (Francia)</field>
+        <field name="code">LAB-SNF</field>
+        <field name="short_name">SANOFI</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="laboratory_merck" model="product.laboratory">
+        <field name="name">Merck (Alemania)</field>
+        <field name="code">LAB-MRK</field>
+        <field name="short_name">MERCK</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <!-- Laboratorios Peruanos -->
+    <record id="laboratory_farmindustria" model="product.laboratory">
+        <field name="name">Farmindustria (Perú)</field>
+        <field name="code">LAB-FRM</field>
+        <field name="short_name">FARMIN</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="laboratory_roemmers" model="product.laboratory">
+        <field name="name">Roemmers (Argentina)</field>
+        <field name="code">LAB-ROM</field>
+        <field name="short_name">ROEMMERS</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="laboratory_bagó" model="product.laboratory">
+        <field name="name">Laboratorios Bagó (Argentina)</field>
+        <field name="code">LAB-BGO</field>
+        <field name="short_name">BAGO</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <!-- Líneas de ejemplo para algunos laboratorios -->
+    
+    <record id="line_bayer_general" model="product.laboratory.line">
+        <field name="laboratory_id" ref="laboratory_bayer"/>
+        <field name="code">BAY1</field>
+        <field name="name">Línea General</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="line_bayer_consumer" model="product.laboratory.line">
+        <field name="laboratory_id" ref="laboratory_bayer"/>
+        <field name="code">BAY2</field>
+        <field name="name">Consumer Health</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="line_pfizer_consumer" model="product.laboratory.line">
+        <field name="laboratory_id" ref="laboratory_pfizer"/>
+        <field name="code">PFZ1</field>
+        <field name="name">Consumer Healthcare</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="line_pfizer_prescription" model="product.laboratory.line">
+        <field name="laboratory_id" ref="laboratory_pfizer"/>
+        <field name="code">PFZ2</field>
+        <field name="name">Prescription Medicines</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="line_gsk_antibiotics" model="product.laboratory.line">
+        <field name="laboratory_id" ref="laboratory_gsk"/>
+        <field name="code">GSK1</field>
+        <field name="name">Antibióticos</field>
+        <field name="active" eval="True"/>
+    </record>
+    
+    <record id="line_gsk_respiratory" model="product.laboratory.line">
+        <field name="laboratory_id" ref="laboratory_gsk"/>
+        <field name="code">GSK2</field>
+        <field name="name">Respiratorio</field>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>
+

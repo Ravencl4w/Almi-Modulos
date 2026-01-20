@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vista de formulario para configuración NubeFact -->
+    <record id="view_nubefact_config_form" model="ir.ui.view">
+        <field name="name">nubefact.config.form</field>
+        <field name="model">nubefact.config</field>
+        <field name="arch" type="xml">
+            <form string="Configuración NubeFact">
+                <sheet>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" 
+                            invisible="active"/>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="company_id" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Credenciales de NubeFact">
+                            <field name="ruc" placeholder="20XXXXXXXXX"/>
+                            <field name="token" password="True" placeholder="Token proporcionado por NubeFact"/>
+                            <field name="api_url" placeholder="https://api.nubefact.com/api/v1/tu-identificador"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        
+                        <group string="Información">
+                            <div class="alert alert-info" style="margin: 10px;">
+                                <p><strong>Nota:</strong> El entorno (Pruebas/Producción) se configura desde tu panel de NubeFact, no desde aquí.</p>
+                                <p>La URL que ingreses determinará si es pruebas o producción.</p>
+                            </div>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Información">
+                            <group>
+                                <div class="alert alert-info" role="alert">
+                                    <h4>Instrucciones de Configuración</h4>
+                                    <ol>
+                                        <li>Regístrese en <a href="https://www.nubefact.com" target="_blank">NubeFact.com</a></li>
+                                        <li>Configure el entorno (Pruebas/Producción) desde su panel de NubeFact</li>
+                                        <li>Copie desde su panel de NubeFact:
+                                            <ul>
+                                                <li><strong>Token de API</strong></li>
+                                                <li><strong>URL de API</strong> (ejemplo: https://api.nubefact.com/api/v1/xxx-xxx-xxx)</li>
+                                            </ul>
+                                        </li>
+                                        <li>Pegue su RUC, Token y URL en el formulario</li>
+                                        <li>Guarde la configuración y envíe su primera factura</li>
+                                    </ol>
+                                    <p><strong>Documentación:</strong> 
+                                        <a href="https://docs.google.com/document/d/1QWWSILBbjd4MDkJl7vCkL2RZvkPh0IC7Wa67BvoYIhA" target="_blank">Manual API JSON</a> | 
+                                        <a href="https://goo.gl/Lz7hAq" target="_blank">Manual API TXT</a>
+                                    </p>
+                                </div>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vista de árbol para configuración NubeFact -->
+    <record id="view_nubefact_config_tree" model="ir.ui.view">
+        <field name="name">nubefact.config.tree</field>
+        <field name="model">nubefact.config</field>
+        <field name="arch" type="xml">
+            <list string="Configuraciones NubeFact">
+                <field name="company_id"/>
+                <field name="ruc"/>
+                <field name="api_url"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Acción para abrir configuración NubeFact -->
+    <record id="action_nubefact_config" model="ir.actions.act_window">
+        <field name="name">Configuración NubeFact</field>
+        <field name="res_model">nubefact.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configura tu conexión con NubeFact
+            </p>
+            <p>
+                Crea una configuración para comenzar a enviar comprobantes electrónicos a SUNAT.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menú en Contabilidad -->
+    <menuitem id="menu_nubefact_root"
+              name="NubeFact"
+              parent="account.menu_finance_configuration"
+              sequence="100"/>
+    
+    <menuitem id="menu_nubefact_config"
+              name="Configuración"
+              parent="menu_nubefact_root"
+              action="action_nubefact_config"
+              sequence="10"/>
+
+</odoo>

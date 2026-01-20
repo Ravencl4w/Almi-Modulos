@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vista de formulario para Líneas de Laboratorio -->
+    <record id="view_product_laboratory_line_form" model="ir.ui.view">
+        <field name="name">product.laboratory.line.form</field>
+        <field name="model">product.laboratory.line</field>
+        <field name="arch" type="xml">
+            <form string="Línea de Laboratorio">
+                <sheet>
+                    <widget name="web_ribbon" title="Archivado" bg_color="text-bg-danger" invisible="active"/>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="complete_name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group string="Información">
+                            <field name="laboratory_id" options="{'no_create': False}"/>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        
+                        <group string="Estadísticas">
+                            <field name="product_count"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Descripción">
+                        <field name="description" nolabel="1" placeholder="Descripción de la línea de producto..."/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Productos" name="products">
+                            <field name="product_ids" mode="list">
+                                <list string="Productos">
+                                    <field name="default_code"/>
+                                    <field name="name"/>
+                                    <field name="brand_id"/>
+                                    <field name="list_price"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Vista de lista para Líneas de Laboratorio -->
+    <record id="view_product_laboratory_line_list" model="ir.ui.view">
+        <field name="name">product.laboratory.line.list</field>
+        <field name="model">product.laboratory.line</field>
+        <field name="arch" type="xml">
+            <list string="Líneas de Laboratorio">
+                <field name="laboratory_name"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="product_count"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Vista de búsqueda para Líneas de Laboratorio -->
+    <record id="view_product_laboratory_line_search" model="ir.ui.view">
+        <field name="name">product.laboratory.line.search</field>
+        <field name="model">product.laboratory.line</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Líneas">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="laboratory_id"/>
+                
+                <filter string="Activas" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Con Productos" name="with_products" domain="[('product_count', '>', 0)]"/>
+                
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Laboratorio" name="group_laboratory" context="{'group_by': 'laboratory_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Acción para abrir Líneas de Laboratorio -->
+    <record id="action_product_laboratory_line" model="ir.actions.act_window">
+        <field name="name">Líneas de Laboratorio</field>
+        <field name="res_model">product.laboratory.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crea tu primera línea de laboratorio
+            </p>
+            <p>
+                Las líneas te permiten organizar productos por categorías dentro de cada laboratorio.
+            </p>
+        </field>
+    </record>
+
+</odoo>
+

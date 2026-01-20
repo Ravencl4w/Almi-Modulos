@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_dispatch_route_list" model="ir.ui.view">
+        <field name="name">dispatch.route.list</field>
+        <field name="model">dispatch.route</field>
+        <field name="arch" type="xml">
+            <list string="Rutas de Reparto" 
+                  decoration-info="state == 'draft'"
+                  decoration-primary="state == 'assigned'"
+                  decoration-warning="state == 'in_progress'"
+                  decoration-success="state == 'done'"
+                  decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="route_date"/>
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <field name="total_orders"/>
+                <field name="pending_orders"/>
+                <field name="delivered_orders"/>
+                <field name="failed_orders"/>
+                <field name="total_weight"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state == 'draft'"
+                       decoration-primary="state == 'assigned'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'done'"
+                       decoration-muted="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_dispatch_route_form" model="ir.ui.view">
+        <field name="name">dispatch.route.form</field>
+        <field name="model">dispatch.route</field>
+        <field name="arch" type="xml">
+            <form string="Ruta de Reparto">
+                <header>
+                    <button name="action_assign" type="object" 
+                            string="Asignar Ruta" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_start" type="object" 
+                            string="Iniciar Ruta" class="oe_highlight"
+                            invisible="state != 'assigned'"/>
+                    <button name="action_complete" type="object" 
+                            string="Completar Ruta" class="oe_highlight"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" type="object" 
+                            string="Cancelar"
+                            invisible="state in ['done', 'cancelled']"
+                            confirm="¿Está seguro de cancelar esta ruta?"/>
+                    <button name="action_reset_to_draft" type="object" 
+                            string="Reiniciar a Borrador"
+                            invisible="state not in ['assigned', 'cancelled']"/>
+                    <button name="action_view_orders" type="object" 
+                            string="Ver Pedidos" class="btn-secondary"
+                            invisible="total_orders == 0"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,assigned,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Información de la Ruta">
+                            <field name="route_date" required="1"/>
+                            <field name="start_datetime" readonly="1"/>
+                            <field name="end_datetime" readonly="1"/>
+                        </group>
+                        <group string="Asignación">
+                            <field name="driver_id" 
+                                   options="{'no_create': True}"
+                                   readonly="state not in ['draft']"/>
+                            <field name="vehicle_id" 
+                                   options="{'no_create': True}"
+                                   readonly="state not in ['draft']"/>
+                            <field name="sheet_id" readonly="1" invisible="not sheet_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Estadísticas">
+                            <field name="total_orders" readonly="1"/>
+                            <field name="pending_orders" readonly="1"/>
+                            <field name="delivered_orders" readonly="1"/>
+                            <field name="failed_orders" readonly="1"/>
+                            <field name="total_weight" readonly="1"/>
+                        </group>
+                        <group string="Zonas">
+                            <field name="zone_ids" widget="many2many_tags" 
+                                   readonly="1" nolabel="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pedidos" name="lines">
+                            <field name="line_ids" 
+                                   readonly="state not in ['draft', 'assigned', 'in_progress']">
+                                <list editable="bottom" 
+                                      decoration-success="state == 'delivered'"
+                                      decoration-danger="state == 'failed'"
+                                      decoration-muted="state == 'pending'">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="order_id" 
+                                           domain="[('state', 'in', ['sale', 'done'])]"
+                                           readonly="route_state not in ['draft']"/>
+                                    <field name="partner_id" readonly="1"/>
+                                    <field name="partner_address" readonly="1" optional="show"/>
+                                    <field name="partner_phone" readonly="1" optional="show"/>
+                                    <field name="sale_zone_id" readonly="1"/>
+                                    <field name="order_amount_total" readonly="1" optional="show"/>
+                                    <field name="state" 
+                                           readonly="route_state not in ['in_progress']"
+                                           widget="badge"
+                                           decoration-success="state == 'delivered'"
+                                           decoration-danger="state == 'failed'"
+                                           decoration-warning="state == 'pending'"/>
+                                    <field name="delivery_datetime" readonly="1" optional="hide"/>
+                                    <field name="failure_reason" 
+                                           readonly="route_state not in ['in_progress']"
+                                           optional="hide"
+                                           invisible="state != 'failed'"/>
+                                    <field name="notes" optional="hide"/>
+                                    <field name="route_state" column_invisible="1"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <button name="action_mark_delivered" type="object" 
+                                            icon="fa-check-circle" 
+                                            string="Marcar Entregado"
+                                            invisible="state != 'pending' or route_state != 'in_progress'"/>
+                                    <button name="action_mark_failed" type="object" 
+                                            icon="fa-times-circle" 
+                                            string="Marcar Fallido"
+                                            invisible="state != 'pending' or route_state != 'in_progress'"/>
+                                    <button name="action_view_order" type="object" 
+                                            icon="fa-external-link" 
+                                            string="Ver Pedido"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="notes" placeholder="Notas adicionales sobre la ruta..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_dispatch_route_kanban" model="ir.ui.view">
+        <field name="name">dispatch.route.kanban</field>
+        <field name="model">dispatch.route</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="route_date"/>
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <field name="state"/>
+                <field name="total_orders"/>
+                <field name="pending_orders"/>
+                <field name="delivered_orders"/>
+                <field name="failed_orders"/>
+                <field name="total_weight"/>
+                <field name="zone_ids"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_record_top mb8">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title">
+                                        <field name="name"/>
+                                    </strong>
+                                    <div class="text-muted">
+                                        <i class="fa fa-calendar"/> <field name="route_date"/>
+                                    </div>
+                                </div>
+                                <div class="o_dropdown_kanban dropdown">
+                                    <a role="button" class="dropdown-toggle o-no-caret btn" data-toggle="dropdown" href="#" aria-label="Dropdown menu" title="Dropdown menu">
+                                        <span class="fa fa-ellipsis-v"/>
+                                    </a>
+                                    <div class="dropdown-menu" role="menu">
+                                        <t t-if="record.state.raw_value == 'draft'">
+                                            <a role="menuitem" type="object" name="action_assign" class="dropdown-item">Asignar Ruta</a>
+                                        </t>
+                                        <t t-if="record.state.raw_value == 'assigned'">
+                                            <a role="menuitem" type="object" name="action_start" class="dropdown-item">Iniciar Ruta</a>
+                                        </t>
+                                        <t t-if="record.state.raw_value == 'in_progress'">
+                                            <a role="menuitem" type="object" name="action_complete" class="dropdown-item">Completar Ruta</a>
+                                        </t>
+                                        <a role="menuitem" type="object" name="action_view_orders" class="dropdown-item">Ver Pedidos</a>
+                                        <div role="separator" class="dropdown-divider"/>
+                                        <a role="menuitem" type="delete" class="dropdown-item">Eliminar</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                <div>
+                                    <i class="fa fa-user"/> <field name="driver_id"/>
+                                </div>
+                                <div>
+                                    <i class="fa fa-car"/> <field name="vehicle_id"/>
+                                </div>
+                                <div class="mt8">
+                                    <span class="badge badge-pill badge-info">
+                                        <i class="fa fa-shopping-bag"/> <field name="total_orders"/> pedidos
+                                    </span>
+                                </div>
+                                <div t-if="record.total_weight.raw_value" class="mt4">
+                                    <i class="fa fa-balance-scale"/> <field name="total_weight"/> kg
+                                </div>
+                                <div class="mt8">
+                                    <t t-if="record.pending_orders.raw_value">
+                                        <span class="badge badge-warning">
+                                            <field name="pending_orders"/> pendientes
+                                        </span>
+                                    </t>
+                                    <t t-if="record.delivered_orders.raw_value">
+                                        <span class="badge badge-success ml-1">
+                                            <field name="delivered_orders"/> entregados
+                                        </span>
+                                    </t>
+                                    <t t-if="record.failed_orders.raw_value">
+                                        <span class="badge badge-danger ml-1">
+                                            <field name="failed_orders"/> fallidos
+                                        </span>
+                                    </t>
+                                </div>
+                                <div t-if="record.zone_ids.raw_value.length" class="mt8">
+                                    <field name="zone_ids" widget="many2many_tags"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Calendar View -->
+    <record id="view_dispatch_route_calendar" model="ir.ui.view">
+        <field name="name">dispatch.route.calendar</field>
+        <field name="model">dispatch.route</field>
+        <field name="arch" type="xml">
+            <calendar string="Calendario de Rutas" 
+                      date_start="route_date" 
+                      color="driver_id"
+                      quick_create="0"
+                      event_open_popup="1"
+                      mode="month">
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <field name="total_orders"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_dispatch_route_search" model="ir.ui.view">
+        <field name="name">dispatch.route.search</field>
+        <field name="model">dispatch.route</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Rutas">
+                <field name="name"/>
+                <field name="driver_id"/>
+                <field name="vehicle_id"/>
+                <field name="route_date"/>
+                <separator/>
+                <filter string="Hoy" name="today" 
+                        domain="[('route_date', '=', context_today())]"/>
+                <filter string="Últimos 7 días" name="last_week" 
+                        domain="[('route_date', '&gt;=', (context_today() - datetime.timedelta(days=7)))]"/>
+                <filter string="Últimos 30 días" name="last_month" 
+                        domain="[('route_date', '&gt;=', (context_today() - datetime.timedelta(days=30)))]"/>
+                <separator/>
+                <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Asignado" name="assigned" domain="[('state', '=', 'assigned')]"/>
+                <filter string="En Progreso" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Completado" name="done" domain="[('state', '=', 'done')]"/>
+                <filter string="Cancelado" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Conductor" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                    <filter string="Vehículo" name="group_vehicle" context="{'group_by': 'vehicle_id'}"/>
+                    <filter string="Fecha" name="group_date" context="{'group_by': 'route_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_dispatch_route" model="ir.actions.act_window">
+        <field name="name">Rutas de Reparto</field>
+        <field name="res_model">dispatch.route</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="context">{'search_default_last_week': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡Crea tu primera ruta de reparto!
+            </p>
+            <p>
+                Planifica y organiza las entregas diarias.
+                Asigna conductores, vehículos y pedidos a cada ruta.
+            </p>
+        </field>
+    </record>
+</odoo>
+

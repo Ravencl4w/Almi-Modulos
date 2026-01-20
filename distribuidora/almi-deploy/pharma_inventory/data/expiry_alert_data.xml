@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    
+    <!-- Cron job para verificar vencimientos diariamente -->
+    <record id="ir_cron_check_expiry_dates" model="ir.cron">
+        <field name="name">Verificar Fechas de Vencimiento</field>
+        <field name="model_id" ref="stock.model_stock_lot"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_expiry_dates()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+
+</odoo>
+

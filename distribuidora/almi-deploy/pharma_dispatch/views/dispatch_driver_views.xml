@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- List View -->
+    <record id="view_dispatch_driver_list" model="ir.ui.view">
+        <field name="name">dispatch.driver.list</field>
+        <field name="model">dispatch.driver</field>
+        <field name="arch" type="xml">
+            <list string="Conductores">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="document_number"/>
+                <field name="license_number"/>
+                <field name="license_category"/>
+                <field name="license_expiry_date"/>
+                <field name="license_expired" column_invisible="1"/>
+                <field name="phone"/>
+                <field name="mobile"/>
+                <field name="email"/>
+                <field name="has_user" column_invisible="1"/>
+                <field name="vehicle_count"/>
+                <field name="route_count"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_dispatch_driver_form" model="ir.ui.view">
+        <field name="name">dispatch.driver.form</field>
+        <field name="model">dispatch.driver</field>
+        <field name="arch" type="xml">
+            <form string="Conductor">
+                <header>
+                    <field name="license_expired" invisible="1"/>
+                    <field name="has_user" invisible="1"/>
+                    <button name="action_view_routes" type="object" 
+                            string="Ver Rutas" class="oe_highlight"
+                            invisible="route_count == 0"/>
+                    <button name="action_reset_password" type="object" 
+                            string="Resetear Contraseña" class="btn-secondary"
+                            invisible="not has_user"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <widget name="web_ribbon" title="Usuario Creado" bg_color="text-bg-success" invisible="not has_user"/>
+                        <widget name="web_ribbon" title="Sin Usuario" bg_color="text-bg-warning" invisible="has_user"/>
+                    </div>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Nombre completo del conductor"/>
+                        </h1>
+                        <label for="code"/>
+                        <h3>
+                            <field name="code" placeholder="Código interno (opcional)"/>
+                        </h3>
+                    </div>
+                    <group>
+                        <group string="Información Personal">
+                            <field name="document_type"/>
+                            <field name="document_number"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="mobile" widget="phone"/>
+                            <field name="email" widget="email"/>
+                            <field name="user_id" readonly="1" 
+                                   decoration-success="user_id"
+                                   decoration-muted="not user_id"/>
+                        </group>
+                        <group string="Licencia de Conducir">
+                            <field name="license_number"/>
+                            <field name="license_category"/>
+                            <field name="license_expiry_date" 
+                                   decoration-danger="license_expired"/>
+                            <field name="license_expired" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Estado">
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="vehicle_count"/>
+                            <field name="route_count"/>
+                        </group>
+                        <group string="Dirección">
+                            <field name="address" nolabel="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Vehículos Asignados" name="vehicles">
+                            <field name="vehicle_ids">
+                                <list>
+                                    <field name="license_plate"/>
+                                    <field name="brand"/>
+                                    <field name="model"/>
+                                    <field name="vehicle_type"/>
+                                    <field name="status"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Rutas" name="routes">
+                            <field name="route_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="route_date"/>
+                                    <field name="vehicle_id"/>
+                                    <field name="state"/>
+                                    <field name="total_orders"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notas" name="notes">
+                            <field name="notes" placeholder="Notas adicionales sobre el conductor..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_dispatch_driver_kanban" model="ir.ui.view">
+        <field name="name">dispatch.driver.kanban</field>
+        <field name="model">dispatch.driver</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="id"/>
+                <field name="name"/>
+                <field name="license_number"/>
+                <field name="phone"/>
+                <field name="mobile"/>
+                <field name="vehicle_count"/>
+                <field name="route_count"/>
+                <field name="image"/>
+                <field name="active"/>
+                <field name="license_expired"/>
+                <field name="has_user"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('dispatch.driver', 'image', record.id.raw_value)" 
+                                     alt="Conductor" class="o_image_64_contain"/>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </strong>
+                                <div t-if="record.license_number.raw_value">
+                                    <i class="fa fa-id-card-o"/> Lic: <field name="license_number"/>
+                                </div>
+                                <div t-if="record.phone.raw_value">
+                                    <i class="fa fa-phone"/> <field name="phone"/>
+                                </div>
+                                <div t-if="record.mobile.raw_value">
+                                    <i class="fa fa-mobile"/> <field name="mobile"/>
+                                </div>
+                                <div>
+                                    <i class="fa fa-car"/> <field name="vehicle_count"/> vehículo(s)
+                                </div>
+                                <div>
+                                    <i class="fa fa-road"/> <field name="route_count"/> ruta(s)
+                                </div>
+                                <div t-if="record.has_user.raw_value" class="text-success">
+                                    <i class="fa fa-user-check"/> Usuario activo
+                                </div>
+                                <div t-if="record.license_expired.raw_value" class="text-danger">
+                                    <i class="fa fa-exclamation-triangle"/> Licencia vencida
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_dispatch_driver_search" model="ir.ui.view">
+        <field name="name">dispatch.driver.search</field>
+        <field name="model">dispatch.driver</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Conductores">
+                <field name="name"/>
+                <field name="document_number"/>
+                <field name="license_number"/>
+                <field name="phone"/>
+                <field name="mobile"/>
+                <separator/>
+                <filter string="Activos" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Inactivos" name="inactive" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Licencia Vencida" name="license_expired" 
+                        domain="[('license_expired', '=', True)]"/>
+                <filter string="Licencia Vigente" name="license_valid" 
+                        domain="[('license_expired', '=', False)]"/>
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Categoría de Licencia" name="group_license_category" 
+                            context="{'group_by': 'license_category'}"/>
+                    <filter string="Tipo de Documento" name="group_document_type" 
+                            context="{'group_by': 'document_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_dispatch_driver" model="ir.actions.act_window">
+        <field name="name">Conductores</field>
+        <field name="res_model">dispatch.driver</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                ¡Crea tu primer conductor!
+            </p>
+            <p>
+                Registra los conductores que realizarán las entregas.
+                Incluye información de licencia, contacto y documentos.
+            </p>
+        </field>
+    </record>
+</odoo>
+

@@ -1,0 +1,32 @@
+services:
+  web:
+    image: odoo:18.0
+    container_name: odoo_almin_webd
+    depends_on:
+      - dbd
+    ports:
+      - "8069:8069"
+    volumes:
+      - odoo-data-almid:/var/lib/odoo
+      # Monta tu carpeta de módulos personalizados aquí
+      - ./almi-deploy:/mnt/extra-addons
+    environment:
+      - PASSWORD=p12346
+      - HOST=dbd
+      - USER=odooAlmiD
+    restart: always
+
+  dbd:
+    image: postgres:16
+    container_name: odoo_almi_dbd
+    environment:
+      POSTGRES_DB: distribuidora
+      POSTGRES_PASSWORD: p12346
+      POSTGRES_USER: odooAlmiD
+    volumes:
+      - odoo-db-almid:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  odoo-data-almid:
+  odoo-db-almid:

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menú Principal de Despacho y Logística -->
+    <menuitem id="menu_dispatch_root"
+              name="Despacho"
+              sequence="25"
+              web_icon="pharma_dispatch,static/description/icon.png"/>
+    
+    <!-- Submenú: Operaciones -->
+    <menuitem id="menu_dispatch_operations"
+              name="Operaciones"
+              parent="menu_dispatch_root"
+              sequence="10"/>
+    
+    <menuitem id="menu_dispatch_sheet"
+              name="Planillas de Despacho"
+              parent="menu_dispatch_operations"
+              action="action_dispatch_sheet"
+              sequence="5"/>
+    
+    <menuitem id="menu_dispatch_route"
+              name="Rutas de Reparto"
+              parent="menu_dispatch_operations"
+              action="action_dispatch_route"
+              sequence="10"/>
+    
+    <menuitem id="menu_stock_picking_gre"
+              name="Guías de Remisión Electrónica"
+              parent="menu_dispatch_operations"
+              action="action_stock_picking_gre"
+              sequence="20"/>
+    
+    <menuitem id="menu_sale_order_pickup"
+              name="Pedidos para Recojo"
+              parent="menu_dispatch_operations"
+              action="action_sale_order_pickup"
+              sequence="30"/>
+    
+    <!-- Submenú: Liquidaciones -->
+    <menuitem id="menu_dispatch_liquidation"
+              name="Liquidaciones"
+              parent="menu_dispatch_root"
+              sequence="50"/>
+    
+    <menuitem id="menu_dispatch_settlement"
+              name="Liquidaciones"
+              parent="menu_dispatch_liquidation"
+              action="action_dispatch_settlement"
+              sequence="10"/>
+    
+    <menuitem id="menu_dispatch_collection_sheet"
+              name="Hojas de Cobranzas"
+              parent="menu_dispatch_liquidation"
+              action="action_dispatch_collection_sheet"
+              sequence="20"/>
+    
+    <!-- Submenú: Configuración -->
+    <menuitem id="menu_dispatch_config"
+              name="Configuración"
+              parent="menu_dispatch_root"
+              sequence="90"/>
+    
+    <menuitem id="menu_dispatch_driver"
+              name="Conductores"
+              parent="menu_dispatch_config"
+              action="action_dispatch_driver"
+              sequence="10"/>
+    
+    <menuitem id="menu_dispatch_vehicle"
+              name="Vehículos"
+              parent="menu_dispatch_config"
+              action="action_dispatch_vehicle"
+              sequence="20"/>
+</odoo>
+

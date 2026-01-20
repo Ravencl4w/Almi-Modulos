@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Vista List de Liquidación -->
+    <record id="view_dispatch_settlement_list" model="ir.ui.view">
+        <field name="name">dispatch.settlement.list</field>
+        <field name="model">dispatch.settlement</field>
+        <field name="arch" type="xml">
+            <list string="Liquidaciones" decoration-info="state=='draft'" 
+                  decoration-warning="state=='in_progress'" 
+                  decoration-success="state=='validated'"
+                  decoration-muted="state=='cancelled'">
+                <field name="name"/>
+                <field name="sheet_id"/>
+                <field name="driver_id"/>
+                <field name="sheet_date"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="total_collected" sum="Cobrado"/>
+                <field name="total_deposited" sum="Depositado"/>
+                <field name="total_missing" sum="Faltante"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state=='draft'"
+                       decoration-warning="state=='in_progress'"
+                       decoration-success="state=='validated'"
+                       decoration-danger="state=='cancelled'"/>
+            </list>
+        </field>
+    </record>
+    
+    <!-- Vista Form de Liquidación -->
+    <record id="view_dispatch_settlement_form" model="ir.ui.view">
+        <field name="name">dispatch.settlement.form</field>
+        <field name="model">dispatch.settlement</field>
+        <field name="arch" type="xml">
+            <form string="Liquidación">
+                <header>
+                    <button name="action_start_progress" string="Iniciar Progreso" 
+                            type="object" class="oe_highlight"
+                            invisible="state != 'draft'"/>
+                    <button name="action_validate" string="Validar" 
+                            type="object" class="oe_highlight"
+                            invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancelar" 
+                            type="object"
+                            invisible="state in ['validated', 'cancelled']"
+                            confirm="¿Está seguro de cancelar esta liquidación?"/>
+                    <button name="action_reset_to_draft" string="Reiniciar a Borrador" 
+                            type="object"
+                            invisible="state not in ['in_progress', 'cancelled']"/>
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,in_progress,validated"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_collection_sheet" type="object" 
+                                class="oe_stat_button" icon="fa-list-alt"
+                                invisible="not collection_sheet_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Hoja de</span>
+                                <span class="o_stat_text">Cobranzas</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    
+                    <group>
+                        <group name="left">
+                            <field name="sheet_id" readonly="1"/>
+                            <field name="driver_id" readonly="1"/>
+                            <field name="vehicle_id" readonly="1"/>
+                            <field name="sheet_date" readonly="1"/>
+                        </group>
+                        <group name="right">
+                            <field name="currency_id" invisible="1"/>
+                            <field name="total_amount" widget="monetary"/>
+                            <field name="total_collected" widget="monetary"/>
+                            <field name="total_deposited" widget="monetary"/>
+                            <field name="total_missing" widget="monetary"/>
+                        </group>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Información General" name="general">
+                            <group>
+                                <group>
+                                    <field name="invoice_count"/>
+                                    <field name="cash_invoice_count"/>
+                                    <field name="credit_invoice_count"/>
+                                </group>
+                                <group>
+                                    <field name="cash_total" widget="monetary"/>
+                                    <field name="credit_total" widget="monetary"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="notes" placeholder="Observaciones sobre la liquidación..."/>
+                            </group>
+                        </page>
+                        
+                        <page string="Depósitos" name="deposits">
+                            <group>
+                                <group>
+                                    <label for="total_collected" string="Total Cobrado"/>
+                                    <div class="o_row">
+                                        <field name="total_collected" widget="monetary" readonly="1"/>
+                                    </div>
+                                    <label for="total_deposited" string="Total Depositado"/>
+                                    <div class="o_row">
+                                        <field name="total_deposited" widget="monetary" readonly="1"/>
+                                    </div>
+                                </group>
+                                <group>
+                                    <label for="total_missing" string="Total Faltante"/>
+                                    <div class="o_row">
+                                        <field name="total_missing" widget="monetary" readonly="1"/>
+                                    </div>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="collection_sheet_id" invisible="1"/>
+                                <p class="text-muted">
+                                    Los detalles de depósitos y faltantes se calculan desde la hoja de cobranzas.
+                                    Para ver las líneas de depósito individuales, abra la hoja de cobranzas.
+                                </p>
+                                <button name="action_view_collection_sheet" string="Ver Hoja de Cobranzas" 
+                                        type="object" class="btn-primary" 
+                                        invisible="not collection_sheet_id"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Facturas al Contado" name="cash_invoices">
+                            <group>
+                                <group>
+                                    <field name="cash_invoice_count"/>
+                                    <field name="cash_total" widget="monetary"/>
+                                </group>
+                            </group>
+                            <field name="cash_invoice_ids">
+                                <list string="Facturas al Contado" create="0" delete="0">
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="invoice_date"/>
+                                    <field name="amount_total" sum="Total"/>
+                                    <field name="amount_residual" sum="Saldo"/>
+                                    <field name="payment_state" widget="badge" 
+                                           decoration-success="payment_state == 'paid'"
+                                           decoration-warning="payment_state == 'partial'"
+                                           decoration-info="payment_state == 'not_paid'"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Facturas al Crédito" name="credit_invoices">
+                            <group>
+                                <group>
+                                    <field name="credit_invoice_count"/>
+                                    <field name="credit_total" widget="monetary"/>
+                                </group>
+                            </group>
+                            <field name="credit_invoice_ids">
+                                <list string="Facturas al Crédito" create="0" delete="0">
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="invoice_date"/>
+                                    <field name="invoice_date_due"/>
+                                    <field name="amount_total" sum="Total"/>
+                                    <field name="amount_residual" sum="Saldo"/>
+                                    <field name="payment_state" widget="badge"
+                                           decoration-success="payment_state == 'paid'"
+                                           decoration-warning="payment_state == 'partial'"
+                                           decoration-info="payment_state == 'not_paid'"/>
+                                </list>
+                            </field>
+                        </page>
+                        
+                        <page string="Hoja de Cobranzas" name="collection_sheet">
+                            <button name="action_view_collection_sheet" string="Abrir Hoja de Cobranzas" 
+                                    type="object" class="oe_highlight" 
+                                    invisible="not collection_sheet_id"/>
+                            <group invisible="not collection_sheet_id">
+                                <group>
+                                    <label for="collection_sheet_id"/>
+                                    <div>
+                                        <field name="collection_sheet_id" readonly="1" class="oe_inline"/>
+                                    </div>
+                                </group>
+                            </group>
+                            <div invisible="collection_sheet_id">
+                                <p class="text-muted">
+                                    La hoja de cobranzas se creará automáticamente al procesar la planilla.
+                                </p>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Vista Search de Liquidación -->
+    <record id="view_dispatch_settlement_search" model="ir.ui.view">
+        <field name="name">dispatch.settlement.search</field>
+        <field name="model">dispatch.settlement</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Liquidaciones">
+                <field name="name"/>
+                <field name="sheet_id"/>
+                <field name="driver_id"/>
+                <separator/>
+                <filter string="Borrador" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="En Progreso" name="in_progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter string="Validado" name="validated" domain="[('state', '=', 'validated')]"/>
+                <separator/>
+                <filter string="Con Faltantes" name="with_missing" 
+                        domain="[('total_missing', '>', 0)]"/>
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Conductor" name="group_driver" context="{'group_by': 'driver_id'}"/>
+                    <filter string="Fecha" name="group_date" context="{'group_by': 'sheet_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <!-- Acción de Liquidaciones -->
+    <record id="action_dispatch_settlement" model="ir.actions.act_window">
+        <field name="name">Liquidaciones</field>
+        <field name="res_model">dispatch.settlement</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Crear una nueva liquidación
+            </p>
+            <p>
+                Las liquidaciones se generan automáticamente al procesar una planilla de despacho.
+            </p>
+        </field>
+    </record>
+    
+</odoo>
+

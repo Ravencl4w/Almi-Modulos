@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_location_form_pharma" model="ir.ui.view">
+        <field name="name">stock.location.form.pharma</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <!-- Agregar header con botones -->
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button name="action_register_temperature" type="object" 
+                            string="Registrar Temperatura"
+                            class="btn-primary"
+                            invisible="not requires_temperature_control"/>
+                    <button name="action_view_temperature_history" type="object" 
+                            string="Ver Histórico"
+                            class="btn-secondary"
+                            invisible="not requires_temperature_control"/>
+                </header>
+            </xpath>
+            
+            <!-- Agregar campos de temperatura después del último grupo en sheet -->
+            <xpath expr="//sheet" position="inside">
+                <group string="Control de Temperatura Farmacéutica">
+                    <group>
+                        <field name="location_type"/>
+                        <field name="requires_temperature_control" widget="boolean_toggle"/>
+                        <field name="temperature_min" invisible="not requires_temperature_control"/>
+                        <field name="temperature_max" invisible="not requires_temperature_control"/>
+                    </group>
+                    <group>
+                        <field name="current_temperature" invisible="not requires_temperature_control"/>
+                        <field name="temperature_state" widget="badge" invisible="not requires_temperature_control"
+                               decoration-success="temperature_state == 'ok'"
+                               decoration-warning="temperature_state == 'warning'"
+                               decoration-danger="temperature_state == 'critical'"/>
+                        <field name="last_temperature_check" invisible="not requires_temperature_control"/>
+                        <field name="alert_responsible_id" invisible="not requires_temperature_control"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+

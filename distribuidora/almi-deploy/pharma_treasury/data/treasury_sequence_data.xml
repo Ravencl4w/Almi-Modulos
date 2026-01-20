@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        
+        <!-- Secuencia para Planillas de Reparto -->
+        <record id="seq_treasury_settlement_sheet" model="ir.sequence">
+            <field name="name">Planilla de Reparto</field>
+            <field name="code">treasury.settlement.sheet</field>
+            <field name="prefix">PLN</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Secuencia para Liquidaciones -->
+        <record id="seq_treasury_settlement" model="ir.sequence">
+            <field name="name">Liquidación de Transportista</field>
+            <field name="code">treasury.settlement</field>
+            <field name="prefix">LIQ</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- Secuencia para Hojas de Cobranza -->
+        <record id="seq_treasury_collection_sheet" model="ir.sequence">
+            <field name="name">Hoja de Cobranza por Vendedor</field>
+            <field name="code">treasury.collection.sheet</field>
+            <field name="prefix">COB</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+    </data>
+</odoo>
+

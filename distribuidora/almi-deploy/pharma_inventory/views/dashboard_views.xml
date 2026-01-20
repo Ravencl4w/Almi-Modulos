@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard simple - se puede expandir con widgets personalizados -->
+    <record id="action_dashboard_expiry" model="ir.actions.act_window">
+        <field name="name">Dashboard de Vencimientos</field>
+        <field name="res_model">stock.expiry.alert</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('state', 'in', ['pending', 'in_process'])]</field>
+    </record>
+</odoo>
+

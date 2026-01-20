@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Heredar vista de formulario de facturas -->
+    <record id="view_move_form_inherit_nubefact" model="ir.ui.view">
+        <field name="name">account.move.form.inherit.nubefact</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Agregar botones en el header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_send_to_sunat" 
+                        string="Enviar a SUNAT" 
+                        type="object" 
+                        class="btn-primary"
+                        invisible="state != 'posted' or move_type not in ['out_invoice', 'out_refund']"
+                        icon="fa-paper-plane"
+                        help="Enviar comprobante a SUNAT mediante NubeFact"/>
+                
+                <button name="action_consultar_sunat" 
+                        string="Consultar en SUNAT" 
+                        type="object" 
+                        class="btn-secondary"
+                        invisible="state != 'posted' or move_type not in ['out_invoice', 'out_refund']"
+                        icon="fa-search"
+                        help="Consultar estado del comprobante en NubeFact/SUNAT"/>
+                
+                <button name="action_download_pdf" 
+                        string="Descargar PDF" 
+                        type="object" 
+                        class="btn-secondary"
+                        invisible="not sunat_enlace_pdf"
+                        icon="fa-file-pdf-o"
+                        help="Descargar PDF del comprobante"/>
+                
+                <button name="action_download_xml" 
+                        string="Descargar XML" 
+                        type="object" 
+                        class="btn-secondary"
+                        invisible="not sunat_enlace_xml"
+                        icon="fa-file-code-o"
+                        help="Descargar XML del comprobante"/>
+                
+                <button name="action_download_cdr" 
+                        string="Descargar CDR" 
+                        type="object" 
+                        class="btn-secondary"
+                        invisible="not sunat_enlace_cdr"
+                        icon="fa-certificate"
+                        help="Descargar Constancia de Recepción"/>
+                
+                <field name="sunat_estado" widget="badge"
+                       decoration-info="sunat_estado == 'not_sent'"
+                       decoration-warning="sunat_estado == 'sent'"
+                       decoration-success="sunat_estado == 'accepted'"
+                       decoration-danger="sunat_estado in ['rejected', 'error']"/>
+            </xpath>
+            
+            <!-- Agregar página de Facturación Electrónica -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Facturación Electrónica" 
+                      name="facturacion_electronica"
+                      invisible="move_type not in ['out_invoice', 'out_refund']">
+                    <group>
+                        <group string="Estado SUNAT">
+                            <field name="sunat_enviado" readonly="1"/>
+                            <field name="sunat_fecha_envio" readonly="1"/>
+                            <field name="sunat_numero_ticket" readonly="1"/>
+                            <field name="sunat_codigo_hash" readonly="1"/>
+                        </group>
+                        
+                        <group string="Comprobante">
+                            <field name="l10n_pe_edi_serie" readonly="1"/>
+                            <field name="serie_comprobante" readonly="1"/>
+                            <field name="numero_comprobante" readonly="1"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Enlaces de Descarga" invisible="not sunat_enlace_pdf">
+                        <field name="sunat_enlace_pdf" readonly="1" widget="url"/>
+                        <field name="sunat_enlace_xml" readonly="1" widget="url"/>
+                        <field name="sunat_enlace_cdr" readonly="1" widget="url"/>
+                    </group>
+                    
+                    <group string="Respuesta de SUNAT" invisible="not sunat_response">
+                        <field name="sunat_response" readonly="1" widget="text" nolabel="1"/>
+                    </group>
+                    
+                    <group string="Mensaje de Error" 
+                           invisible="not sunat_error_message"
+                           class="alert alert-danger">
+                        <field name="sunat_error_message" readonly="1" widget="text" nolabel="1"/>
+                    </group>
+                </page>
+            </xpath>
+            
+        </field>
+    </record>
+
+    <!-- Acción para envío masivo a SUNAT -->
+    <record id="action_send_to_sunat_massive" model="ir.actions.server">
+        <field name="name">Enviar a SUNAT (Masivo)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = records.action_send_to_sunat_massive()
+        </field>
+    </record>
+
+</odoo>

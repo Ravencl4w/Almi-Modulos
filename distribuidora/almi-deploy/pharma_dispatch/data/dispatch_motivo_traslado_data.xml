@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+        Catálogo de Motivos de Traslado según SUNAT (Catálogo 20)
+        
+        Este archivo contiene datos de referencia para los motivos de traslado
+        válidos según el catálogo 20 de SUNAT para Guías de Remisión Electrónica.
+        
+        Los códigos están definidos directamente en el modelo stock.picking
+        como selection field: transfer_reason
+        
+        Este archivo puede ser usado para crear registros adicionales o
+        configuraciones específicas si es necesario en el futuro.
+        
+        Códigos disponibles:
+        01 - Venta
+        02 - Compra  
+        04 - Traslado entre establecimientos de la misma empresa
+        08 - Importación
+        09 - Exportación
+        13 - Otros
+        14 - Venta sujeta a confirmación del comprador
+        18 - Traslado emisor itinerante CP
+        19 - Traslado a zona primaria
+    -->
+    
+    <!-- Este archivo está reservado para futuros datos maestros relacionados con motivos de traslado -->
+    
+    <data noupdate="1">
+        <!-- Placeholder para futuros registros de configuración -->
+    </data>
+</odoo>
+

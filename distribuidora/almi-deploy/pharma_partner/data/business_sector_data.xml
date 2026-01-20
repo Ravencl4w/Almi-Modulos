@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    
+    <!-- 
+        Este archivo puede ser utilizado para agregar datos de demostración 
+        o configuraciones adicionales en el futuro.
+        
+        Nota: Los giros de negocio están definidos como Selection en el modelo,
+        por lo que no requieren datos XML iniciales.
+    -->
+
+</odoo>
+
